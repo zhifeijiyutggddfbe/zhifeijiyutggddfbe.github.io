@@ -1,51 +1,376 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>Paper Team - 设备安全管理</title>
-    <style>
-        body { background: #0a0a0a; color: #00ffcc; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 20px; }
-        .panel { width: 100%; max-width: 500px; border: 1px solid #00ffcc; padding: 20px; box-shadow: 0 0 15px #00ffcc; }
-        .device-card { background: #1a1a1a; border-left: 4px solid #00ffcc; margin: 10px 0; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .status-online { color: #00ff00; font-size: 0.8rem; }
-        .status-offline { color: #ff4444; font-size: 0.8rem; }
-        .btn { background: #00ffcc; color: black; border: none; padding: 8px 15px; cursor: pointer; font-weight: bold; }
-        .btn:hover { background: white; }
-        h2 { text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard - Galactic Obfuscator</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+
+<style>
+* {margin:0;padding:0;box-sizing:border-box;}
+
+body {
+    background: linear-gradient(135deg, #6dd5fa, #ffffff);
+    color:#1f2937;
+    min-height:100vh;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display:flex;
+    flex-direction:column;
+}
+
+header {
+    padding:20px 0;
+    text-align:center;
+    background:rgba(255,255,255,0.2);
+    backdrop-filter: blur(8px);
+}
+
+header h1 {
+    font-family:'Fredoka One', cursive;
+    font-size:2.5rem;
+    color:#003366;
+}
+
+nav {
+    display:flex;
+    justify-content:center;
+    gap:20px;
+    padding:15px 0;
+    background:rgba(255,255,255,0.3);
+    backdrop-filter: blur(5px);
+}
+
+nav a {
+    text-decoration:none;
+    color:#003366;
+    font-weight:bold;
+    padding:8px 15px;
+    border-radius:6px;
+}
+
+nav a:hover {
+    background:#003366;
+    color:white;
+}
+
+.main {
+    flex:1;
+    padding:30px 15px;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:20px;
+}
+
+textarea {
+    width:60%;
+    padding:15px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    font-family:monospace;
+    font-size:1rem;
+    resize:vertical;
+    min-height:250px;
+}
+
+.output-container {
+    display:none;
+    flex-direction:column;
+    gap:10px;
+    width:60%;
+}
+
+.output {
+    padding:15px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    font-family:monospace;
+    background:#f8f8f8;
+    white-space:pre-wrap;
+}
+
+button {
+    padding:10px 25px;
+    font-size:1rem;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    background:#003366;
+    color:white;
+    transition: 0.3s;
+}
+
+button:hover {
+    background:#0055aa;
+}
+
+/* 新增：分享按钮样式 */
+#share-btn {
+    background: #5856d6;
+}
+#share-btn:hover {
+    background: #4644b1;
+}
+
+.button-group {
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+select {
+    padding:10px;
+    border-radius:6px;
+    border:1px solid #ccc;
+    width:60%;
+}
+
+@media (max-width:600px) {
+    textarea, select, .output-container {
+        width: 90%;
+    }
+}
+
+body.dark {
+    background: linear-gradient(135deg, #0f172a, #020617);
+    color: #e5e7eb;
+}
+
+body.dark * {
+    color: inherit;
+}
+
+body.dark header,
+body.dark nav {
+    background: rgba(0,0,0,0.4);
+}
+
+body.dark nav a {
+    color: #e5e7eb;
+}
+
+body.dark nav a:hover {
+    background: #1e293b;
+    color: white;
+}
+
+body.dark textarea,
+body.dark .output,
+body.dark select {
+    background: #020617;
+    color: #e5e7eb;
+    border: 1px solid #334155;
+}
+
+body.dark button {
+    background: #1e293b;
+    color: white;
+}
+
+body.dark button:hover {
+    background: #334155;
+}
+</style>
 </head>
+
 <body>
 
-<div class="panel">
-    <h2>账号关联设备检测</h2>
-    <p>当前登录账号: <span id="user-email">未验证</span></p>
+<header>
+<h1>Galactic Obfuscator</h1>
+</header>
 
-    <div id="device-list">
-        <div class="device-card">
-            <div>
-                <strong>Realme 8 (当前)</strong><br>
-                <span class="status-online">● 在线</span>
-            </div>
-            <button class="btn" onclick="alert('正在定位当前设备...')">定位</button>
-        </div>
+<nav>
+<a href="index.html">Home</a>
+<a href="dashboard.html">Dashboard</a>
+<a href="settings.html">Settings</a>
+</nav>
 
-        <div class="device-card" style="opacity: 0.6;">
-            <div>
-                <strong>Android 小手机 (未识别型号)</strong><br>
-                <span class="status-offline">○ 离线 (最后出现在 3 天前)</span>
-            </div>
-            <button class="btn" style="background:#555;" disabled>无法连接</button>
-        </div>
-    </div>
+<div class="main">
 
-    <div style="margin-top: 20px; font-size: 0.7rem; color: #888;">
-        * 注意：若设备列表中未出现目标手机，请确认该手机已开启“查找我的设备”权限且未关机。
-    </div>
+<label>Paste your Luau code here:</label>
+<textarea id="code-input" placeholder="Paste your Luau code here"></textarea>
+
+<label>Select Preset:</label>
+<select id="preset">
+<option value="medium">Medium (Standard size - Runtime encode)</option>
+<option value="weak">Weak (Small file size - No antitamper)</option>
+<option value="minify">Minify</option>
+<option value="strong">Strong (Large size - Runtime encode)</option>
+<option value="disableAntiTamper">DisableAntiTamper (Like medium without antitamper)</option>
+</select>
+
+<button id="obfuscate-btn">Obfuscate</button>
+
+<div class="output-container" id="output-container">
+<div id="code-output" class="output"></div>
+
+<div class="button-group">
+<button id="copy-btn">Copy</button>
+<button id="download-btn">Download</button>
+<button id="share-btn">Create Raw Link</button>
+</div>
+</div>
+
 </div>
 
 <script>
-    // 这里的逻辑在实际开发中需要对接 Google OAuth2.0 和 Google API
-    console.log("正在请求设备列表权限...");
+const input = document.getElementById("code-input");
+const output = document.getElementById("code-output");
+const container = document.getElementById("output-container");
+
+const obfuscateBtn = document.getElementById("obfuscate-btn");
+const copyBtn = document.getElementById("copy-btn");
+const downloadBtn = document.getElementById("download-btn");
+const shareBtn = document.getElementById("share-btn");
+
+let lastResult = "";
+
+function randomName(length = 14) {
+    const chars = "abcdefghijklmnopqrstuvwxyz";
+    let result = "";
+    for(let i = 0; i < length; i++){
+        result += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return result;
+}
+
+function formatSize(bytes) {
+    if(bytes < 1024) return bytes + " bytes";
+    if(bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+}
+
+// 混淆逻辑
+obfuscateBtn.addEventListener("click", async () => {
+    const code = input.value.trim();
+    if(!code){
+        alert("Please paste your code.");
+        return;
+    }
+
+    const preset = document.getElementById("preset").value;
+
+    container.style.display = "flex";
+    output.textContent = "🚀 Obfuscating via Railway API...";
+    shareBtn.style.display = "none"; // 混淆中隐藏分享按钮
+
+    try {
+        const res = await fetch("https://web-production-5cef0.up.railway.app/api/obfuscate", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ code, preset })
+        });
+
+        const data = await res.json();
+
+        if(data.status === "ok"){
+            lastResult = data.obfuscated;
+            const size = formatSize(new Blob([lastResult]).size);
+            output.textContent = "✅ Successfully Obfuscated!\n\nFile size: " + size + "\nPreset: " + preset;
+            shareBtn.style.display = "inline-block"; // 显示分享按钮
+        } else {
+            output.textContent = "❌ Error: " + (data.error || "Server error");
+        }
+
+    } catch(e){
+        output.textContent = "❌ Error: Network issue or Railway API offline";
+    }
+});
+
+// 新增：分享到 Pastefy 并生成 Raw 链接
+shareBtn.addEventListener("click", async () => {
+    if(!lastResult) return;
+
+    const originalText = shareBtn.textContent;
+    shareBtn.disabled = true;
+    shareBtn.textContent = "Uploading...";
+
+    try {
+        const res = await fetch("https://pastefy.app/api/v2/paste", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                title: "Galactic-Obf-" + randomName(5),
+                content: lastResult,
+                type: "PASTE"
+            })
+        });
+
+        const data = await res.json();
+
+        if(data.success) {
+            const rawUrl = `https://pastefy.app/${data.paste.id}/raw`;
+            
+            // 复制链接并打开
+            await navigator.clipboard.writeText(rawUrl);
+            window.open(rawUrl, '_blank');
+            
+            shareBtn.textContent = "Copied Raw Link!";
+            setTimeout(() => {
+                shareBtn.textContent = originalText;
+                shareBtn.disabled = false;
+            }, 2000);
+        } else {
+            alert("Pastefy upload failed.");
+            shareBtn.textContent = originalText;
+            shareBtn.disabled = false;
+        }
+    } catch (err) {
+        alert("Network error while reaching Pastefy.");
+        shareBtn.textContent = originalText;
+        shareBtn.disabled = false;
+    }
+});
+
+copyBtn.addEventListener("click", () => {
+    if(!lastResult) return;
+    navigator.clipboard.writeText(lastResult);
+    const original = copyBtn.textContent;
+    copyBtn.textContent = "Copied!";
+    setTimeout(() => copyBtn.textContent = original, 1500);
+});
+
+downloadBtn.addEventListener("click", () => {
+    if(!lastResult) return;
+
+    const blob = new Blob([lastResult], {type:"text/plain"});
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Galactic_" + randomName(6) + ".txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    URL.revokeObjectURL(url);
+});
+
+function applyTheme(theme) {
+    if(theme === "system"){
+        if(window.matchMedia("(prefers-color-scheme: dark)").matches){
+            document.body.classList.add("dark");
+        } else {
+            document.body.classList.remove("dark");
+        }
+    } else if(theme === "dark"){
+        document.body.classList.add("dark");
+    } else {
+        document.body.classList.remove("dark");
+    }
+}
+
+const savedTheme = localStorage.getItem("theme") || "system";
+applyTheme(savedTheme);
+
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    if((localStorage.getItem("theme") || "system") === "system"){
+        applyTheme("system");
+    }
+});
 </script>
 
 </body>
