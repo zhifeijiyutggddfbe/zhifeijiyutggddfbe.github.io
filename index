@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Paper Team - 设备安全管理</title>
+    <style>
+        body { background: #0a0a0a; color: #00ffcc; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 20px; }
+        .panel { width: 100%; max-width: 500px; border: 1px solid #00ffcc; padding: 20px; box-shadow: 0 0 15px #00ffcc; }
+        .device-card { background: #1a1a1a; border-left: 4px solid #00ffcc; margin: 10px 0; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .status-online { color: #00ff00; font-size: 0.8rem; }
+        .status-offline { color: #ff4444; font-size: 0.8rem; }
+        .btn { background: #00ffcc; color: black; border: none; padding: 8px 15px; cursor: pointer; font-weight: bold; }
+        .btn:hover { background: white; }
+        h2 { text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="panel">
+    <h2>账号关联设备检测</h2>
+    <p>当前登录账号: <span id="user-email">未验证</span></p>
+
+    <div id="device-list">
+        <div class="device-card">
+            <div>
+                <strong>Realme 8 (当前)</strong><br>
+                <span class="status-online">● 在线</span>
+            </div>
+            <button class="btn" onclick="alert('正在定位当前设备...')">定位</button>
+        </div>
+
+        <div class="device-card" style="opacity: 0.6;">
+            <div>
+                <strong>Android 小手机 (未识别型号)</strong><br>
+                <span class="status-offline">○ 离线 (最后出现在 3 天前)</span>
+            </div>
+            <button class="btn" style="background:#555;" disabled>无法连接</button>
+        </div>
+    </div>
+
+    <div style="margin-top: 20px; font-size: 0.7rem; color: #888;">
+        * 注意：若设备列表中未出现目标手机，请确认该手机已开启“查找我的设备”权限且未关机。
+    </div>
+</div>
+
+<script>
+    // 这里的逻辑在实际开发中需要对接 Google OAuth2.0 和 Google API
+    console.log("正在请求设备列表权限...");
+</script>
+
+</body>
+</html>
