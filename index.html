@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="referrer" content="no-referrer">
-    <title>PVZ 高性能修复版</title>
+    <title>PVZ 彻底修复不卡顿版</title>
     <style>
         body { margin: 0; background: #1a1a1a; color: #fff; font-family: sans-serif; overflow: hidden; touch-action: none; }
         #game-wrapper { position: relative; width: 1000px; height: 640px; margin: 5px auto; background: #4caf50; border: 5px solid #3e2723; border-radius: 10px; }
@@ -23,8 +23,8 @@
 
 <div id="game-wrapper">
     <div id="menu">
-        <h1 style="color:#ff0">PVZ 稳定高性能版</h1>
-        <div class="btn" onclick="start('normal')">开战</div>
+        <h1 style="color:#ff0">PVZ 机枪不卡顿版</h1>
+        <div class="btn" onclick="start('normal')">开始</div>
         <div class="btn" onclick="start('mod')" style="color:#ff3131; border-color:#ff3131;">无限阳光</div>
     </div>
     <div id="toolbar">
@@ -76,7 +76,6 @@ function sel(t, c, el) {
     el.classList.add('active');
 }
 
-// 核心逻辑：移除 setTimeout，改用循环处理射击
 function loop() {
     if(!running) return;
     ctx.clearRect(0, 0, 1000, 640);
@@ -88,28 +87,19 @@ function loop() {
     plants.forEach(p => {
         if(img[p.t].complete) ctx.drawImage(img[p.t], p.x+10, p.y+10, 80, 80);
         p.timer++;
-        
-        // 射击频率控制
-        let rate = 90;
-        if(p.timer % rate === 0) {
-            let shots = 1;
-            if(p.t === 'repeater') shots = 2;
-            if(p.t === 'gatling') shots = 4;
-            if(p.t === 'sunflower') {
-                if(p.timer % 450 === 0) suns.push({x: p.x+20, y: p.y+10, life: 500});
-                return;
-            }
-            if(p.t === 'wallnut' || p.t === 'torchwood') return;
 
-            // 循环生成子弹，避免卡死
-            for(let i=0; i<shots; i++){
-                bullets.push({
-                    x: p.x + 70 + (i * 20), // 子弹错开位置，模拟连发
-                    y: p.y + 25,
-                    t: p.t === 'snowpea' ? 'ice' : 'normal',
-                    row: p.row
-                });
-            }
+        // 核心：队列射击逻辑，防止瞬间生成子弹导致计算卡死
+        if(p.t === 'sunflower' && p.timer % 450 === 0) suns.push({x: p.x+20, y: p.y+10, life: 500});
+        
+        let coolDown = 90; 
+        if(p.timer % coolDown === 0 && !['sunflower', 'wallnut', 'torchwood'].includes(p.t)) {
+            p.shotsPending = (p.t === 'gatling') ? 4 : (p.t === 'repeater' ? 2 : 1);
+        }
+
+        // 每隔10帧射出一颗挂起的子弹，实现平滑连发
+        if(p.shotsPending > 0 && p.timer % 10 === 0) {
+            bullets.push({x: p.x+70, y: p.y+25, t: p.t==='snowpea'?'ice':'normal', row: p.row});
+            p.shotsPending--;
         }
     });
 
@@ -120,27 +110,22 @@ function loop() {
 
     bullets.forEach((b, bi) => {
         b.x += 8;
-        // 火炬检测：只有普通子弹变火球，寒冰不变
         if(b.t === 'normal') {
-            plants.forEach(p => {
-                if(p.t === 'torchwood' && b.x > p.x && b.x < p.x+40 && b.row === p.row) b.t = 'fire';
+            plants.some(p => {
+                if(p.t==='torchwood' && b.x > p.x && b.x < p.x+40 && b.row === p.row) {
+                    b.t='fire'; return true;
+                }
             });
         }
 
-        // 渲染子弹贴图
-        if(b.t === 'fire') ctx.drawImage(img.fire_bullet, b.x, b.y, 50, 40);
-        else if(b.t === 'ice') {
-            // 寒冰子弹渲染
-            ctx.fillStyle = "#00f2ff"; ctx.beginPath(); ctx.arc(b.x+15, b.y+15, 10, 0, 7); ctx.fill();
-        } else {
-            // 普通豌豆子弹贴图
-            ctx.drawImage(img.pea_bullet, b.x, b.y, 35, 35);
-        }
+        if(b.t==='fire') ctx.drawImage(img.fire_bullet, b.x, b.y, 50, 40);
+        else if(b.t==='ice') { ctx.fillStyle="#00f2ff"; ctx.beginPath(); ctx.arc(b.x+15, b.y+15, 10, 0, 7); ctx.fill(); }
+        else ctx.drawImage(img.pea_bullet, b.x, b.y, 35, 35);
 
         zombies.forEach((z, zi) => {
             if(b.x > z.x && b.x < z.x+60 && b.row === z.row) {
-                z.hp -= (b.t === 'fire' ? 45 : 20);
-                if(b.t === 'ice') z.slow = 120;
+                z.hp -= (b.t==='fire'?45:20);
+                if(b.t==='ice') z.slow = 120;
                 bullets.splice(bi, 1);
             }
         });
@@ -160,7 +145,7 @@ function loop() {
         });
         if(!eating) z.x -= speed;
         if(z.hp <= 0) zombies.splice(zi, 1);
-        if(z.x < 0) { running = false; alert('失败'); location.reload(); }
+        if(z.x < 0) { running = false; alert('游戏结束'); location.reload(); }
     });
 
     frame++; requestAnimationFrame(loop);
@@ -181,7 +166,7 @@ cvs.onmousedown = (e) => {
         const gx = grid.x + c*grid.size, gy = grid.y + r*grid.size;
         if(!plants.some(p => p.x === gx && p.y === gy)) {
             if(sun >= activeC || mode === 'mod') {
-                plants.push({x: gx, y: gy, row: r, t: activeP, hp: 120, timer: 0});
+                plants.push({x: gx, y: gy, row: r, t: activeP, hp: 120, timer: 0, shotsPending: 0});
                 if(mode !== 'mod') { sun -= activeC; document.getElementById('sun-val').innerText = sun; }
             }
         }
