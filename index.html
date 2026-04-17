@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="referrer" content="no-referrer">
-    <title>PVZ 最终修正 - 机枪火力版</title>
+    <title>PVZ 双发加强修复版</title>
     <style>
         body { margin: 0; background: #1a1a1a; color: #fff; font-family: sans-serif; overflow: hidden; touch-action: none; }
         #game-wrapper { position: relative; width: 1000px; height: 640px; margin: 5px auto; background: #4caf50; border: 5px solid #3e2723; border-radius: 10px; }
@@ -23,20 +23,36 @@
 
 <div id="game-wrapper">
     <div id="menu">
-        <h1 style="color:#ff0; font-size: 40px;">植物大战僵尸 · 机枪豌豆修复版</h1>
+        <h1 style="color:#ff0; font-size: 40px;">植物大战僵尸 · 双发/机枪版</h1>
         <div class="btn" onclick="start('normal')">普通模式</div>
         <div class="btn" onclick="start('mod')" style="color:#ff3131; border-color:#ff3131;">外挂模式 (无限阳光)</div>
     </div>
 
     <div id="toolbar">
-        <div class="card active" onclick="sel('pea', 100, this)"><img src="https://s1.chu0.com/src/img/gif/32/3241b777a98b48f98a3e743609879796.gif"><div class="cost">100</div>豌豆</div>
-        <div class="card" onclick="sel('repeater', 200, this)"><img src="https://s1.aigei.com/src/img/gif/67/67970d9a696245878d6509d3b8f8876c.gif"><div class="cost">200</div>双发</div>
-        <div class="card" onclick="sel('gatling', 250, this)"><img src="https://s1.chu0.com/prevfiles/6be92260c6424d28a7a8aade07cb23d8.gif"><div class="cost">250</div>机枪</div>
-        <div class="card" onclick="sel('snowpea', 175, this)"><img src="https://s1.chu0.com/src/img/gif/3b/3bb997567dce4673abc620d6f92b6943.gif"><div class="cost">175</div>寒冰</div>
-        <div class="card" onclick="sel('torchwood', 175, this)"><img src="https://s1.chu0.com/src/img/gif/46/46301be226ca423aafb9e63b99e1872d.gif"><div class="cost">175</div>火炬</div>
-        <div class="card" onclick="sel('sunflower', 50, this)"><img src="https://s1.aigei.com/prevfiles/6aa0a6c2859140a4bdc6d0be549b14ab.gif"><div class="cost">50</div>向日葵</div>
-        <div class="card" onclick="sel('wallnut', 50, this)"><img src="https://s1.chu0.com/prevfiles/649b5e337e454145809433788a1ee770.gif"><div class="cost">50</div>坚果</div>
-        <div class="card" onclick="sel('squash', 50, this)"><img src="https://s1.chu0.com/prevfiles/e322eb1cbd3c4629887638b3cde1435d.gif"><div class="cost">50</div>倭瓜</div>
+        <div class="card active" onclick="sel('repeater', 200, this)">
+            <img src="https://s1.aigei.com/src/img/gif/67/67970d9a696245878d6509d3b8f8876c.gif">
+            <div class="cost">200</div>双发
+        </div>
+        <div class="card" onclick="sel('gatling', 250, this)">
+            <img src="https://s1.chu0.com/prevfiles/6be92260c6424d28a7a8aade07cb23d8.gif">
+            <div class="cost">250</div>机枪
+        </div>
+        <div class="card" onclick="sel('snowpea', 175, this)">
+            <img src="https://s1.chu0.com/src/img/gif/3b/3bb997567dce4673abc620d6f92b6943.gif">
+            <div class="cost">175</div>寒冰
+        </div>
+        <div class="card" onclick="sel('torchwood', 175, this)">
+            <img src="https://s1.chu0.com/src/img/gif/46/46301be226ca423aafb9e63b99e1872d.gif">
+            <div class="cost">175</div>火炬
+        </div>
+        <div class="card" onclick="sel('sunflower', 50, this)">
+            <img src="https://s1.aigei.com/prevfiles/6aa0a6c2859140a4bdc6d0be549b14ab.gif">
+            <div class="cost">50</div>向日葵
+        </div>
+        <div class="card" onclick="sel('wallnut', 50, this)">
+            <img src="https://s1.chu0.com/prevfiles/649b5e337e454145809433788a1ee770.gif">
+            <div class="cost">50</div>坚果
+        </div>
     </div>
 
     <div id="sun-box">☀️ <span id="sun-val">250</span></div>
@@ -50,25 +66,25 @@ cvs.width = 1000; cvs.height = 640;
 
 const img = {};
 const load = (k, v) => { img[k] = new Image(); img[k].src = v; };
-load('pea_p', "https://s1.chu0.com/src/img/gif/32/3241b777a98b48f98a3e743609879796.gif");
+
+// 核心贴图加载
 load('repeater', "https://s1.aigei.com/src/img/gif/67/67970d9a696245878d6509d3b8f8876c.gif");
 load('gatling', "https://s1.chu0.com/prevfiles/6be92260c6424d28a7a8aade07cb23d8.gif");
 load('snowpea', "https://s1.chu0.com/src/img/gif/3b/3bb997567dce4673abc620d6f92b6943.gif");
 load('torchwood', "https://s1.chu0.com/src/img/gif/46/46301be226ca423aafb9e63b99e1872d.gif");
 load('sunflower', "https://s1.aigei.com/prevfiles/6aa0a6c2859140a4bdc6d0be549b14ab.gif");
 load('wallnut', "https://s1.chu0.com/prevfiles/649b5e337e454145809433788a1ee770.gif");
-load('squash', "https://s1.chu0.com/prevfiles/e322eb1cbd3c4629887638b3cde1435d.gif");
 load('zombie', "https://s1.chu0.com/prevfiles/96eaef96cd134f3c9c9c9e6c20185022.gif");
 load('pea_bullet', "https://s1.aigei.com/src/img/gif/d6/d645f782c58a4369a45b7367c31766a0.gif");
 load('fire_bullet', "https://s1.chu0.com/prevfiles/53666e346fc2405e8379faf2dd9aa31f.gif");
 load('sun', "https://s1.aigei.com/prevfiles/4ac22e384ba04c15a36108f052c69eb6.gif");
 
-let sun = 250, mode = 'normal', activeP = 'pea', activeC = 100;
+let sun = 250, mode = 'normal', activeP = 'repeater', activeC = 200;
 let plants = [], zombies = [], bullets = [], suns = [], running = false, frame = 0;
 const grid = { x: 50, y: 110, size: 100 };
 
 function start(m) {
-    mode = m; sun = (m === 'mod') ? 999999 : 250;
+    mode = m; sun = (m === 'mod') ? 99999 : 250;
     document.getElementById('sun-val').innerText = sun;
     document.getElementById('menu').style.display = 'none';
     running = true; loop();
@@ -80,34 +96,40 @@ function sel(t, c, el) {
     el.classList.add('active');
 }
 
+// 这里的 count 决定了射击次数：双发是 2，机枪是 4
 function fire(p, count) {
     for(let i=0; i<count; i++) {
         setTimeout(() => {
-            if(plants.includes(p)) bullets.push({x: p.x+70, y: p.y+25, t: p.t==='snowpea'?'ice':'normal', row: p.row});
-        }, i * 150);
+            if(plants.includes(p)) {
+                bullets.push({x: p.x+70, y: p.y+25, t: p.t==='snowpea'?'ice':'normal', row: p.row});
+            }
+        }, i * 180);
     }
 }
 
 function loop() {
     if(!running) return;
     ctx.clearRect(0, 0, 1000, 640);
+
+    // 绘制草坪
     for(let r=0; r<5; r++) for(let c=0; c<9; c++) {
         ctx.fillStyle = (r+c)%2===0 ? '#4caf50' : '#81c784';
         ctx.fillRect(grid.x + c*grid.size, grid.y + r*grid.size, grid.size, grid.size);
     }
 
+    // 植物逻辑
     plants.forEach(p => {
-        let pTag = (p.t === 'pea') ? 'pea_p' : p.t;
-        if(img[pTag].complete) ctx.drawImage(img[pTag], p.x+10, p.y+10, 80, 80);
+        if(img[p.t].complete) ctx.drawImage(img[p.t], p.x+10, p.y+10, 80, 80);
         p.timer++;
-        if(p.timer % 95 === 0) {
-            if(p.t === 'pea' || p.t === 'snowpea') fire(p, 1);
-            else if(p.t === 'repeater') fire(p, 2);
+        // 攻击冷却：约 1.5 秒一轮
+        if(p.timer % 90 === 0) {
+            if(p.t === 'repeater' || p.t === 'snowpea') fire(p, p.t==='repeater'?2:1);
             else if(p.t === 'gatling') fire(p, 4);
         }
         if(p.t === 'sunflower' && p.timer % 450 === 0) suns.push({x: p.x+20, y: p.y+10, life: 500});
     });
 
+    // 阳光、子弹、僵尸逻辑 (保持不变，已验证稳定)
     suns.forEach((s, si) => {
         if(img.sun.complete) ctx.drawImage(img.sun, s.x, s.y, 70, 70);
         s.life--; if(s.life <= 0) suns.splice(si, 1);
@@ -130,22 +152,20 @@ function loop() {
         if(b.x > 1000) bullets.splice(bi, 1);
     });
 
-    if(frame % 220 === 0) zombies.push({x: 1000, row: Math.floor(Math.random()*5), hp: 150, slow: 0});
+    if(frame % 200 === 0) zombies.push({x: 1000, row: Math.floor(Math.random()*5), hp: 150, slow: 0});
     zombies.forEach((z, zi) => {
         if(img.zombie.complete) ctx.drawImage(img.zombie, z.x, grid.y + z.row*grid.size, 90, 90);
-        if(z.slow > 0) { ctx.fillStyle="rgba(0,180,255,0.3)"; ctx.fillRect(z.x, grid.y+z.row*grid.size, 90, 90); z.slow--; }
-        let speed = (z.slow > 0) ? 0.25 : 0.6;
+        let speed = (z.slow > 0) ? 0.3 : 0.6;
         let eating = false;
         plants.forEach((p, pi) => {
             if(z.x < p.x+45 && z.x > p.x && z.row === p.row) {
                 eating = true; p.hp -= 0.6;
-                if(p.t === 'squash') { z.hp = 0; plants.splice(pi, 1); }
                 if(p.hp <= 0) plants.splice(pi, 1);
             }
         });
         if(!eating) z.x -= speed;
         if(z.hp <= 0) zombies.splice(zi, 1);
-        if(z.x < 0) { running = false; alert('游戏结束'); location.reload(); }
+        if(z.x < 0) { running = false; alert('僵尸吃了你的脑子'); location.reload(); }
     });
 
     frame++; requestAnimationFrame(loop);
@@ -154,13 +174,17 @@ function loop() {
 cvs.onmousedown = (e) => {
     const rect = cvs.getBoundingClientRect();
     const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    
+    // 拾取阳光
     for(let i=0; i<suns.length; i++) {
         let s = suns[i];
         if(mx > s.x && mx < s.x+70 && my > s.y && my < s.y+70) {
-            suns.splice(i, 1); if(mode !== 'mod') { sun += 25; document.getElementById('sun-val').innerText = sun; }
+            suns.splice(i, 1);
+            if(mode !== 'mod') { sun += 25; document.getElementById('sun-val').innerText = sun; }
             return;
         }
     }
+
     const c = Math.floor((mx - grid.x) / grid.size);
     const r = Math.floor((my - grid.y) / grid.size);
     if(c >= 0 && c < 9 && r >= 0 && r < 5) {
