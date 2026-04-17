@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="referrer" content="no-referrer">
-    <title>PVZ 完整修复版</title>
+    <title>PVZ 高性能修复版</title>
     <style>
         body { margin: 0; background: #1a1a1a; color: #fff; font-family: sans-serif; overflow: hidden; touch-action: none; }
         #game-wrapper { position: relative; width: 1000px; height: 640px; margin: 5px auto; background: #4caf50; border: 5px solid #3e2723; border-radius: 10px; }
@@ -12,7 +12,7 @@
         .btn { padding: 15px 50px; margin: 10px; font-size: 24px; cursor: pointer; background: #4e342e; color: #fff; border: 2px solid #ff0; border-radius: 12px; }
         #toolbar { position: absolute; top: 5px; left: 5px; display: flex; gap: 4px; background: rgba(0,0,0,0.7); padding: 5px; border-radius: 5px; z-index: 10; border: 1px solid #777; }
         .card { width: 62px; height: 95px; background: #333; border: 2px solid #555; cursor: pointer; text-align: center; font-size: 10px; }
-        .card.active { border-color: #ff0; background: #444; box-shadow: 0 0 8px #ff0; }
+        .card.active { border-color: #ff0; background: #444; }
         .card img { width: 42px; height: 42px; display: block; margin: 2px auto; pointer-events: none; }
         .cost { color: #ff0; font-weight: bold; font-size: 13px; }
         #sun-box { position: absolute; top: 15px; right: 20px; font-size: 32px; color: #ff0; font-weight: bold; text-shadow: 2px 2px #000; z-index: 10; }
@@ -23,42 +23,19 @@
 
 <div id="game-wrapper">
     <div id="menu">
-        <h1 style="color:#ff0">PVZ 完整全植物修复版</h1>
-        <div class="btn" onclick="start('normal')">普通模式</div>
-        <div class="btn" onclick="start('mod')" style="color:#ff3131; border-color:#ff3131;">破解模式</div>
+        <h1 style="color:#ff0">PVZ 稳定高性能版</h1>
+        <div class="btn" onclick="start('normal')">开战</div>
+        <div class="btn" onclick="start('mod')" style="color:#ff3131; border-color:#ff3131;">无限阳光</div>
     </div>
-
     <div id="toolbar">
-        <div class="card active" onclick="sel('pea', 100, this)">
-            <img src="https://s1.chu0.com/src/img/gif/32/3241b777a98b48f98a3e743609879796.gif">
-            <div class="cost">100</div>豌豆
-        </div>
-        <div class="card" onclick="sel('repeater', 200, this)">
-            <img src="https://s1.aigei.com/src/img/gif/67/67970d9a696245878d6509d3b8f8876c.gif">
-            <div class="cost">200</div>双发
-        </div>
-        <div class="card" onclick="sel('gatling', 250, this)">
-            <img src="https://s1.chu0.com/prevfiles/6be92260c6424d28a7a8aade07cb23d8.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:uyjC9ovXHEXnBTuVGr7eOYbuaKE=">
-            <div class="cost">250</div>机枪
-        </div>
-        <div class="card" onclick="sel('snowpea', 175, this)">
-            <img src="https://s1.chu0.com/src/img/gif/3b/3bb997567dce4673abc620d6f92b6943.gif">
-            <div class="cost">175</div>寒冰
-        </div>
-        <div class="card" onclick="sel('torchwood', 175, this)">
-            <img src="https://s1.chu0.com/src/img/gif/46/46301be226ca423aafb9e63b99e1872d.gif">
-            <div class="cost">175</div>火炬
-        </div>
-        <div class="card" onclick="sel('sunflower', 50, this)">
-            <img src="https://s1.aigei.com/prevfiles/6aa0a6c2859140a4bdc6d0be549b14ab.gif">
-            <div class="cost">50</div>葵
-        </div>
-        <div class="card" onclick="sel('wallnut', 50, this)">
-            <img src="https://s1.chu0.com/prevfiles/649b5e337e454145809433788a1ee770.gif">
-            <div class="cost">50</div>坚果
-        </div>
+        <div class="card active" onclick="sel('pea', 100, this)"><img src="https://s1.chu0.com/src/img/gif/32/3241b777a98b48f98a3e743609879796.gif"><div class="cost">100</div>豌豆</div>
+        <div class="card" onclick="sel('repeater', 200, this)"><img src="https://s1.aigei.com/src/img/gif/67/67970d9a696245878d6509d3b8f8876c.gif"><div class="cost">200</div>双发</div>
+        <div class="card" onclick="sel('gatling', 250, this)"><img src="https://s1.chu0.com/prevfiles/6be92260c6424d28a7a8aade07cb23d8.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:uyjC9ovXHEXnBTuVGr7eOYbuaKE="><div class="cost">250</div>机枪</div>
+        <div class="card" onclick="sel('snowpea', 175, this)"><img src="https://s1.chu0.com/src/img/gif/3b/3bb997567dce4673abc620d6f92b6943.gif"><div class="cost">175</div>寒冰</div>
+        <div class="card" onclick="sel('torchwood', 175, this)"><img src="https://s1.chu0.com/src/img/gif/46/46301be226ca423aafb9e63b99e1872d.gif"><div class="cost">175</div>火炬</div>
+        <div class="card" onclick="sel('sunflower', 50, this)"><img src="https://s1.aigei.com/prevfiles/6aa0a6c2859140a4bdc6d0be549b14ab.gif"><div class="cost">50</div>葵</div>
+        <div class="card" onclick="sel('wallnut', 50, this)"><img src="https://s1.chu0.com/prevfiles/649b5e337e454145809433788a1ee770.gif"><div class="cost">50</div>坚果</div>
     </div>
-
     <div id="sun-box">☀️ <span id="sun-val">250</span></div>
     <canvas id="gameCanvas"></canvas>
 </div>
@@ -70,7 +47,6 @@ cvs.width = 1000; cvs.height = 640;
 
 const img = {};
 const load = (k, v) => { img[k] = new Image(); img[k].src = v; };
-
 load('pea', "https://s1.chu0.com/src/img/gif/32/3241b777a98b48f98a3e743609879796.gif");
 load('repeater', "https://s1.aigei.com/src/img/gif/67/67970d9a696245878d6509d3b8f8876c.gif");
 load('gatling', "https://s1.chu0.com/prevfiles/6be92260c6424d28a7a8aade07cb23d8.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:uyjC9ovXHEXnBTuVGr7eOYbuaKE=");
@@ -100,20 +76,10 @@ function sel(t, c, el) {
     el.classList.add('active');
 }
 
-function fire(p, count) {
-    for(let i=0; i<count; i++) {
-        setTimeout(() => {
-            if(plants.includes(p)) {
-                bullets.push({x: p.x+70, y: p.y+25, t: p.t==='snowpea'?'ice':'normal', row: p.row});
-            }
-        }, i * 150);
-    }
-}
-
+// 核心逻辑：移除 setTimeout，改用循环处理射击
 function loop() {
     if(!running) return;
     ctx.clearRect(0, 0, 1000, 640);
-
     for(let r=0; r<5; r++) for(let c=0; c<9; c++) {
         ctx.fillStyle = (r+c)%2===0 ? '#4caf50' : '#81c784';
         ctx.fillRect(grid.x + c*grid.size, grid.y + r*grid.size, grid.size, grid.size);
@@ -122,12 +88,29 @@ function loop() {
     plants.forEach(p => {
         if(img[p.t].complete) ctx.drawImage(img[p.t], p.x+10, p.y+10, 80, 80);
         p.timer++;
-        if(p.timer % 90 === 0) {
-            if(p.t==='pea' || p.t==='snowpea') fire(p, 1);
-            else if(p.t==='repeater') fire(p, 2);
-            else if(p.t==='gatling') fire(p, 4);
+        
+        // 射击频率控制
+        let rate = 90;
+        if(p.timer % rate === 0) {
+            let shots = 1;
+            if(p.t === 'repeater') shots = 2;
+            if(p.t === 'gatling') shots = 4;
+            if(p.t === 'sunflower') {
+                if(p.timer % 450 === 0) suns.push({x: p.x+20, y: p.y+10, life: 500});
+                return;
+            }
+            if(p.t === 'wallnut' || p.t === 'torchwood') return;
+
+            // 循环生成子弹，避免卡死
+            for(let i=0; i<shots; i++){
+                bullets.push({
+                    x: p.x + 70 + (i * 20), // 子弹错开位置，模拟连发
+                    y: p.y + 25,
+                    t: p.t === 'snowpea' ? 'ice' : 'normal',
+                    row: p.row
+                });
+            }
         }
-        if(p.t === 'sunflower' && p.timer % 450 === 0) suns.push({x: p.x+20, y: p.y+10, life: 500});
     });
 
     suns.forEach((s, si) => {
@@ -137,15 +120,27 @@ function loop() {
 
     bullets.forEach((b, bi) => {
         b.x += 8;
-        plants.forEach(p => { if(p.t==='torchwood' && b.x > p.x && b.x < p.x+40 && b.row === p.row) b.t='fire'; });
-        if(b.t==='fire') ctx.drawImage(img.fire_bullet, b.x, b.y, 50, 40);
-        else if(b.t==='ice') { ctx.fillStyle="#00f2ff"; ctx.beginPath(); ctx.arc(b.x+15, b.y+15, 8, 0, 7); ctx.fill(); }
-        else ctx.drawImage(img.pea_bullet, b.x, b.y, 35, 35);
+        // 火炬检测：只有普通子弹变火球，寒冰不变
+        if(b.t === 'normal') {
+            plants.forEach(p => {
+                if(p.t === 'torchwood' && b.x > p.x && b.x < p.x+40 && b.row === p.row) b.t = 'fire';
+            });
+        }
+
+        // 渲染子弹贴图
+        if(b.t === 'fire') ctx.drawImage(img.fire_bullet, b.x, b.y, 50, 40);
+        else if(b.t === 'ice') {
+            // 寒冰子弹渲染
+            ctx.fillStyle = "#00f2ff"; ctx.beginPath(); ctx.arc(b.x+15, b.y+15, 10, 0, 7); ctx.fill();
+        } else {
+            // 普通豌豆子弹贴图
+            ctx.drawImage(img.pea_bullet, b.x, b.y, 35, 35);
+        }
 
         zombies.forEach((z, zi) => {
             if(b.x > z.x && b.x < z.x+60 && b.row === z.row) {
-                z.hp -= (b.t==='fire'?45:20);
-                if(b.t==='ice') z.slow = 120;
+                z.hp -= (b.t === 'fire' ? 45 : 20);
+                if(b.t === 'ice') z.slow = 120;
                 bullets.splice(bi, 1);
             }
         });
@@ -165,7 +160,7 @@ function loop() {
         });
         if(!eating) z.x -= speed;
         if(z.hp <= 0) zombies.splice(zi, 1);
-        if(z.x < 0) { running = false; alert('僵尸吃了你的脑子'); location.reload(); }
+        if(z.x < 0) { running = false; alert('失败'); location.reload(); }
     });
 
     frame++; requestAnimationFrame(loop);
@@ -174,18 +169,14 @@ function loop() {
 cvs.onmousedown = (e) => {
     const rect = cvs.getBoundingClientRect();
     const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-    
     for(let i=0; i<suns.length; i++) {
         let s = suns[i];
         if(mx > s.x && mx < s.x+70 && my > s.y && my < s.y+70) {
-            suns.splice(i, 1);
-            if(mode !== 'mod') { sun += 25; document.getElementById('sun-val').innerText = sun; }
-            return;
+            suns.splice(i, 1); sun += (mode==='mod'?0:25);
+            document.getElementById('sun-val').innerText = sun; return;
         }
     }
-
-    const c = Math.floor((mx - grid.x) / grid.size);
-    const r = Math.floor((my - grid.y) / grid.size);
+    const c = Math.floor((mx - grid.x) / grid.size), r = Math.floor((my - grid.y) / grid.size);
     if(c >= 0 && c < 9 && r >= 0 && r < 5) {
         const gx = grid.x + c*grid.size, gy = grid.y + r*grid.size;
         if(!plants.some(p => p.x === gx && p.y === gy)) {
