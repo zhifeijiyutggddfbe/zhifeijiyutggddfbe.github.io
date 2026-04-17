@@ -2,68 +2,72 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="referrer" content="no-referrer">
-    <title>PVZ 路易16魔改版</title>
+    <title>PVZ 路易16完整版</title>
     <style>
-        body { margin: 0; background: #1a1a1a; color: #fff; font-family: sans-serif; overflow: hidden; touch-action: none; }
-        #game-wrapper { position: relative; width: 1000px; height: 640px; margin: 5px auto; background: #4caf50; border: 5px solid #3e2723; border-radius: 10px; }
-        #menu { position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }
+        #game-container { position: relative; width: 1000px; height: 640px; background: #4caf50; border: 4px solid #3e2723; box-sizing: border-box; transform-origin: center; overflow: hidden; }
+        
+        /* 菜单 */
+        #menu { position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .btn { padding: 15px 50px; margin: 10px; font-size: 24px; cursor: pointer; background: #4e342e; color: #fff; border: 2px solid #ff0; border-radius: 12px; }
-        #toolbar { position: absolute; top: 5px; left: 5px; display: flex; gap: 4px; background: rgba(0,0,0,0.7); padding: 5px; border-radius: 5px; z-index: 10; border: 1px solid #777; }
-        .card { width: 65px; height: 95px; background: #333; border: 2px solid #555; cursor: pointer; text-align: center; font-size: 10px; }
-        .card.active { border-color: #ff0; background: #444; box-shadow: 0 0 5px #ff0; }
+
+        /* 卡槽栏 */
+        #toolbar { position: absolute; top: 5px; left: 5px; display: flex; gap: 4px; background: rgba(0,0,0,0.6); padding: 5px; border-radius: 5px; z-index: 10; border: 1px solid #444; }
+        .card { width: 68px; height: 90px; background: #555; border: 2px solid #333; cursor: pointer; text-align: center; position: relative; overflow: hidden; }
+        .card.active { border-color: #0f0; background: #666; }
+        .card.cooldown::after { content: ""; position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.6); height: var(--cd, 0%); transition: height 0.1s linear; }
         .card img { width: 45px; height: 45px; display: block; margin: 2px auto; pointer-events: none; }
-        .cost { color: #ff0; font-weight: bold; font-size: 12px; }
-        #sun-box { position: absolute; top: 15px; right: 20px; font-size: 32px; color: #ff0; font-weight: bold; text-shadow: 2px 2px #000; z-index: 10; }
-        canvas { display: block; }
+        .cost { color: #ff0; font-weight: bold; font-size: 13px; text-shadow: 1px 1px #000; }
+        .name { font-size: 10px; color: #fff; }
+
+        /* 铲子 */
+        #shovel { width: 60px; height: 60px; background: #333; border: 2px solid #fff; position: absolute; left: 450px; top: 5px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; }
+        #shovel.active { border-color: #f00; background: #555; }
+
+        #sun-box { position: absolute; top: 15px; right: 20px; font-size: 30px; color: #ff0; font-weight: bold; text-shadow: 2px 2px #000; z-index: 10; background: rgba(0,0,0,0.4); padding: 5px 15px; border-radius: 20px; }
+        #wave-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 60px; color: #f00; font-weight: bold; text-shadow: 4px 4px #000; z-index: 50; pointer-events: none; display: none; }
+        canvas { display: block; touch-action: none; }
     </style>
 </head>
 <body>
 
-<div id="game-wrapper">
+<div id="game-container">
     <div id="menu">
-        <h1 style="color:#ff0">PVZ · 路易16魔改版</h1>
-        <div class="btn" onclick="start('normal')">进入游戏</div>
-        <div class="btn" onclick="start('mod')" style="color:#ff3131; border-color:#ff3131;">无限阳光</div>
+        <h2 style="color:#ff0; font-size: 40px; margin-bottom: 20px;">PVZ 路易16之怒</h2>
+        <div class="btn" onclick="start('normal')">正经模式</div>
+        <div class="btn" onclick="start('mod')" style="color:#ff4444; border-color:#ff4444;">无限阳光</div>
     </div>
 
     <div id="toolbar">
-        <div class="card active" onclick="sel('pea', 100, this)">
-            <img src="https://s1.aigei.com/prevfiles/0c48c399aa024288837b5db9214a7251.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:0MCPPPifyEncWX2yXeHcMKqtVa0=">
-            <div class="cost">100</div>豌豆
-        </div>
-        <div class="card" onclick="sel('repeater', 200, this)">
-            <img src="https://s1.chu0.com/src/img/gif/84/841d4abb6ac4416cbadab4ca8f38cd44.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:5zuNEsOdTyxH_6WDOpsD4OgZkEY=">
-            <div class="cost">200</div>双发
-        </div>
-        <div class="card" onclick="sel('cherry', 150, this)">
-            <img src="https://s1.aigei.com/prevfiles/5a4686e74c374bac930c5ebaebda4a12.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:OyySlfi61PYxOknNrdf5CV2FDWQ=">
-            <div class="cost">150</div>樱桃
-        </div>
-        <div class="card" onclick="sel('sunflower', 50, this)">
-            <img src="https://s1.aigei.com/prevfiles/1970c9beda3243949100b4eb9f4453f5.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:DSIZp4_WAt59X2K0B8EIQ7W21-o=">
-            <div class="cost">50</div>向日葵
-        </div>
-        <div class="card" onclick="sel('squash', 50, this)">
-            <img src="https://s1.chu0.com/prevfiles/e322eb1cbd3c4629887638b3cde1435d.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:JRDVjB_ANh2k6wa6tC_ZBPBCq7U=">
-            <div class="cost">50</div>倭瓜
-        </div>
+        <div class="card active" id="card-pea" onclick="sel('pea', 100, this)"><img src="https://s1.aigei.com/prevfiles/0c48c399aa024288837b5db9214a7251.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:0MCPPPifyEncWX2yXeHcMKqtVa0="><div class="cost">100</div><div class="name">豌豆</div></div>
+        <div class="card" id="card-repeater" onclick="sel('repeater', 200, this)"><img src="https://s1.chu0.com/src/img/gif/84/841d4abb6ac4416cbadab4ca8f38cd44.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:5zuNEsOdTyxH_6WDOpsD4OgZkEY="><div class="cost">200</div><div class="name">双发</div></div>
+        <div class="card" id="card-sunflower" onclick="sel('sunflower', 50, this)"><img src="https://s1.aigei.com/prevfiles/1970c9beda3243949100b4eb9f4453f5.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:DSIZp4_WAt59X2K0B8EIQ7W21-o="><div class="cost">50</div><div class="name">向日葵</div></div>
+        <div class="card" id="card-cherry" onclick="sel('cherry', 150, this)"><img src="https://s1.aigei.com/prevfiles/5a4686e74c374bac930c5ebaebda4a12.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:OyySlfi61PYxOknNrdf5CV2FDWQ="><div class="cost">150</div><div class="name">樱桃</div></div>
+        <div class="card" id="card-squash" onclick="sel('squash', 50, this)"><img src="https://s1.chu0.com/prevfiles/e322eb1cbd3c4629887638b3cde1435d.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:JRDVjB_ANh2k6wa6tC_ZBPBCq7U="><div class="cost">50</div><div class="name">倭瓜</div></div>
     </div>
 
-    <div id="sun-box">☀️ <span id="sun-val">250</span></div>
+    <div id="shovel" onclick="useShovel()"><span style="font-size:30px">🧹</span></div>
+    <div id="sun-box">☀️ <span id="sun-val">150</span></div>
+    <div id="wave-msg">一大波僵尸正在靠近！</div>
     <canvas id="gameCanvas"></canvas>
 </div>
 
 <script>
+const container = document.getElementById('game-container');
 const cvs = document.getElementById('gameCanvas');
 const ctx = cvs.getContext('2d');
 cvs.width = 1000; cvs.height = 640;
 
+function resize() {
+    const scale = Math.min(window.innerWidth / 1000, window.innerHeight / 640);
+    container.style.transform = `scale(${scale})`;
+}
+window.addEventListener('resize', resize); resize();
+
 const img = {};
 const load = (k, v) => { img[k] = new Image(); img[k].src = v; };
-
-// 资源加载
 load('pea', "https://s1.aigei.com/prevfiles/0c48c399aa024288837b5db9214a7251.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:0MCPPPifyEncWX2yXeHcMKqtVa0=");
 load('repeater', "https://s1.chu0.com/src/img/gif/84/841d4abb6ac4416cbadab4ca8f38cd44.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:5zuNEsOdTyxH_6WDOpsD4OgZkEY=");
 load('sunflower', "https://s1.aigei.com/prevfiles/1970c9beda3243949100b4eb9f4453f5.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:DSIZp4_WAt59X2K0B8EIQ7W21-o=");
@@ -74,131 +78,188 @@ load('sun', "https://s1.chu0.com/prevfiles/c5df756ba71b4cc192efa14b8320f64b.gif?
 load('zombie', "https://s1.chu0.com/prevfiles/96eaef96cd134f3c9c9c9e6c20185022.gif");
 load('boss', "https://s1.chu0.com/prevfiles/26a3b77e34f748f09b80a348f5116a26.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:guWfQkrkVo8reVTrDgT-Xb7GyNs=");
 
-let sun = 250, mode = 'normal', activeP = 'pea', activeC = 100;
-let plants = [], zombies = [], bullets = [], suns = [], effects = [], running = false, frame = 0;
+let sun = 150, mode = 'normal', activeP = 'pea', activeC = 100, isShovel = false;
+let plants = [], zombies = [], bullets = [], suns = [], effects = [], running = false, frame = 0, wave = 1;
 const grid = { x: 50, y: 110, size: 100 };
+const cooldowns = { pea: 0, repeater: 0, sunflower: 0, cherry: 0, squash: 0 };
+const CD_MAX = { pea: 100, repeater: 200, sunflower: 100, cherry: 800, squash: 400 };
 
 function start(m) {
-    mode = m; sun = (m === 'mod') ? 999999 : 250;
+    mode = m; sun = (m === 'mod') ? 999999 : 150;
     document.getElementById('sun-val').innerText = sun;
     document.getElementById('menu').style.display = 'none';
     running = true; loop();
 }
 
 function sel(t, c, el) {
+    isShovel = false; document.getElementById('shovel').classList.remove('active');
     activeP = t; activeC = c;
     document.querySelectorAll('.card').forEach(i => i.classList.remove('active'));
     el.classList.add('active');
+}
+
+function useShovel() {
+    isShovel = !isShovel;
+    document.getElementById('shovel').classList.toggle('active', isShovel);
+    if(isShovel) {
+        document.querySelectorAll('.card').forEach(i => i.classList.remove('active'));
+        activeP = null;
+    }
 }
 
 function loop() {
     if(!running) return;
     ctx.clearRect(0, 0, 1000, 640);
 
+    // 绘制草坪
     for(let r=0; r<5; r++) for(let c=0; c<9; c++) {
         ctx.fillStyle = (r+c)%2===0 ? '#4caf50' : '#81c784';
         ctx.fillRect(grid.x + c*grid.size, grid.y + r*grid.size, grid.size, grid.size);
     }
 
+    // CD 处理
+    for(let k in cooldowns) {
+        if(cooldowns[k] > 0) {
+            cooldowns[k]--;
+            const p = (cooldowns[k] / CD_MAX[k]) * 100;
+            document.getElementById('card-'+k).style.setProperty('--cd', p + '%');
+            document.getElementById('card-'+k).classList.add('cooldown');
+        } else {
+            document.getElementById('card-'+k).classList.remove('cooldown');
+        }
+    }
+
+    // 植物逻辑
     plants.forEach((p, pi) => {
         if(img[p.t].complete) ctx.drawImage(img[p.t], p.x+10, p.y+10, 80, 80);
         p.timer++;
 
-        if(p.t === 'sunflower' && p.timer % 400 === 0) suns.push({x: p.x+20, y: p.y+10, life: 500});
+        if(p.t === 'sunflower' && p.timer % 400 === 0) suns.push({x: p.x+20, y: p.y+10, vy: -2, life: 500});
         
         if(p.t === 'cherry' && p.timer > 60) {
-            effects.push({x: p.x-50, y: p.y-50, t: 'boom', life: 45});
+            effects.push({x: p.x-50, y: p.y-50, t: 'boom', life: 40});
             zombies.forEach(z => {
-                let dx = (z.x+45) - (p.x+50), dy = (grid.y+z.row*100+45) - (p.y+50);
-                if(Math.sqrt(dx*dx + dy*dy) < 180) z.hp -= 1800;
+                let dx=(z.x+45)-(p.x+50), dy=(grid.y+z.row*100+45)-(p.y+50);
+                if(Math.sqrt(dx*dx+dy*dy) < 180) z.hp -= 2000;
             });
             plants.splice(pi, 1);
         }
 
-        if(p.timer % 95 === 0 && (p.t === 'pea' || p.t === 'repeater')) {
-            p.pending = (p.t === 'repeater') ? 2 : 1;
+        // 队列射击（豌豆、双发）
+        if(p.timer % 90 === 0 && (p.t==='pea' || p.t==='repeater')) {
+            // 只有当前行有僵尸才开火
+            if(zombies.some(z => z.row === p.row && z.x > p.x)) {
+                p.pending = (p.t==='repeater'?2:1);
+            }
         }
         if(p.pending > 0 && p.timer % 12 === 0) {
-            bullets.push({x: p.x+70, y: p.y+25, t: 'bone_bullet', row: p.row});
+            bullets.push({x: p.x+70, y: p.y+25, row: p.row});
             p.pending--;
         }
     });
 
-    effects.forEach((ef, efi) => {
-        if(img[ef.t].complete) ctx.drawImage(img[ef.t], ef.x, ef.y, 200, 200);
-        ef.life--; if(ef.life <= 0) effects.splice(efi, 1);
-    });
-
-    suns.forEach((s, si) => {
-        if(img.sun.complete) ctx.drawImage(img.sun, s.x, s.y, 70, 70);
-        s.life--; if(s.life <= 0) suns.splice(si, 1);
-    });
-
+    // 子弹
     bullets.forEach((b, bi) => {
         b.x += 8;
-        // 渲染骨头形状的子弹
-        ctx.fillStyle = "#fff";
-        ctx.beginPath();
-        ctx.roundRect(b.x, b.y+5, 22, 12, 5);
-        ctx.fill();
-
+        ctx.fillStyle="#fff"; ctx.beginPath(); ctx.roundRect(b.x, b.y+5, 22, 12, 5); ctx.fill();
         zombies.forEach(z => {
-            if(b.x > z.x && b.x < z.x+60 && b.row === z.row) {
-                z.hp -= 20;
-                bullets.splice(bi, 1);
-            }
+            if(b.x > z.x && b.x < z.x+60 && b.row === z.row) { z.hp -= 20; bullets.splice(bi, 1); }
         });
         if(b.x > 1000) bullets.splice(bi, 1);
     });
 
-    if(frame % 200 === 0) {
-        let isBoss = (frame > 0 && frame % 1600 === 0);
-        zombies.push({x: 1000, row: Math.floor(Math.random()*5), hp: isBoss?4000:150, t: isBoss?'boss':'zombie'});
+    // 阳光下落及生成
+    if(frame % 300 === 0) suns.push({x: Math.random()*800+100, y: -50, vy: 1.5, life: 600});
+    suns.forEach((s, si) => {
+        if(img.sun.complete) ctx.drawImage(img.sun, s.x, s.y, 70, 70);
+        if(s.y < 450) s.y += s.vy;
+        s.life--; if(s.life <= 0) suns.splice(si, 1);
+    });
+
+    // 僵尸生成逻辑（随波次增强）
+    if(frame % (300 - Math.min(wave*20, 150)) === 0) {
+        let isBoss = (frame > 0 && frame % 1200 === 0);
+        zombies.push({
+            x: 1000, 
+            row: Math.floor(Math.random()*5), 
+            hp: isBoss ? 3500 + wave*200 : 150 + wave*20, 
+            t: isBoss ? 'boss' : 'zombie'
+        });
+        if(frame % 1000 === 0) wave++;
+        if(frame % 2000 === 0) showWaveMsg();
     }
 
     zombies.forEach((z, zi) => {
-        let size = (z.t === 'boss') ? 150 : 90;
-        let yOff = (z.t === 'boss') ? -40 : 0;
+        let size = (z.t==='boss'?150:90), yOff = (z.t==='boss'?-40:0);
         if(img[z.t].complete) ctx.drawImage(img[z.t], z.x, grid.y + z.row*grid.size + yOff, size, size);
         
         let eating = false;
         plants.forEach((p, pi) => {
-            if(z.x < p.x+45 && z.x > p.x && z.row === p.row) {
-                eating = true; p.hp -= (z.t === 'boss' ? 4 : 0.6);
-                if(p.t === 'squash') { z.hp -= 1800; plants.splice(pi, 1); }
+            if(z.x < p.x+45 && z.x > p.x-20 && z.row === p.row) {
+                eating = true; p.hp -= (z.t==='boss'?4:0.6);
+                if(p.t === 'squash') { z.hp -= 2000; effects.push({x: p.x, y: p.y, t:'boom', life:10}); plants.splice(pi, 1); }
                 if(p.hp <= 0) plants.splice(pi, 1);
             }
         });
-        if(!eating) z.x -= (z.t === 'boss' ? 0.4 : 0.7);
+        if(!eating) z.x -= (z.t==='boss'?0.4:0.8);
         if(z.hp <= 0) zombies.splice(zi, 1);
-        if(z.x < 0) { running = false; alert('路易16吃掉了你的脑子！'); location.reload(); }
+        if(z.x < -50) { running = false; alert('游戏结束！路易16获胜。'); location.reload(); }
+    });
+
+    effects.forEach((ef, efi) => {
+        if(img[ef.t].complete) ctx.drawImage(img[ef.t], ef.x, ef.y, 200, 200);
+        ef.life--; if(ef.life<=0) effects.splice(efi, 1);
     });
 
     frame++; requestAnimationFrame(loop);
 }
 
-cvs.onmousedown = (e) => {
-    const rect = cvs.getBoundingClientRect();
-    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+function showWaveMsg() {
+    const el = document.getElementById('wave-msg');
+    el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', 2000);
+}
+
+function handleInput(clientX, clientY) {
+    const rect = container.getBoundingClientRect();
+    const scale = rect.width / 1000;
+    const mx = (clientX - rect.left) / scale;
+    const my = (clientY - rect.top) / scale;
+
+    // 点阳光
     for(let i=0; i<suns.length; i++) {
         let s = suns[i];
         if(mx > s.x && mx < s.x+70 && my > s.y && my < s.y+70) {
-            suns.splice(i, 1); 
-            if(mode !== 'mod') { sun += 25; document.getElementById('sun-val').innerText = sun; }
-            return;
+            suns.splice(i, 1); sun += (mode==='mod'?0:25);
+            document.getElementById('sun-val').innerText = (mode==='mod'?'∞':sun); return;
         }
     }
+
     const c = Math.floor((mx - grid.x) / grid.size), r = Math.floor((my - grid.y) / grid.size);
     if(c >= 0 && c < 9 && r >= 0 && r < 5) {
         const gx = grid.x + c*grid.size, gy = grid.y + r*grid.size;
-        if(!plants.some(p => p.x === gx && p.y === gy)) {
-            if(sun >= activeC || mode === 'mod') {
+        const targetIdx = plants.findIndex(p => p.x === gx && p.y === gy);
+
+        if(isShovel) {
+            if(targetIdx !== -1) plants.splice(targetIdx, 1);
+            return;
+        }
+
+        if(targetIdx === -1 && activeP) {
+            if((sun >= activeC && cooldowns[activeP] <= 0) || mode === 'mod') {
                 plants.push({x: gx, y: gy, row: r, t: activeP, hp: 150, timer: 0, pending: 0});
-                if(mode !== 'mod') { sun -= activeC; document.getElementById('sun-val').innerText = sun; }
+                if(mode !== 'mod') {
+                    sun -= activeC;
+                    cooldowns[activeP] = CD_MAX[activeP];
+                    document.getElementById('sun-val').innerText = sun;
+                }
             }
         }
     }
 }
+
+cvs.addEventListener('mousedown', (e) => handleInput(e.clientX, e.clientY));
+cvs.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(e.touches[0].clientX, e.touches[0].clientY); });
 </script>
 </body>
 </html>
