@@ -4,17 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="referrer" content="no-referrer">
-    <title>PVZ 彻底修复不卡顿版</title>
+    <title>PVZ 路易16魔改版</title>
     <style>
         body { margin: 0; background: #1a1a1a; color: #fff; font-family: sans-serif; overflow: hidden; touch-action: none; }
         #game-wrapper { position: relative; width: 1000px; height: 640px; margin: 5px auto; background: #4caf50; border: 5px solid #3e2723; border-radius: 10px; }
         #menu { position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .btn { padding: 15px 50px; margin: 10px; font-size: 24px; cursor: pointer; background: #4e342e; color: #fff; border: 2px solid #ff0; border-radius: 12px; }
         #toolbar { position: absolute; top: 5px; left: 5px; display: flex; gap: 4px; background: rgba(0,0,0,0.7); padding: 5px; border-radius: 5px; z-index: 10; border: 1px solid #777; }
-        .card { width: 62px; height: 95px; background: #333; border: 2px solid #555; cursor: pointer; text-align: center; font-size: 10px; }
-        .card.active { border-color: #ff0; background: #444; }
-        .card img { width: 42px; height: 42px; display: block; margin: 2px auto; pointer-events: none; }
-        .cost { color: #ff0; font-weight: bold; font-size: 13px; }
+        .card { width: 65px; height: 95px; background: #333; border: 2px solid #555; cursor: pointer; text-align: center; font-size: 10px; }
+        .card.active { border-color: #ff0; background: #444; box-shadow: 0 0 5px #ff0; }
+        .card img { width: 45px; height: 45px; display: block; margin: 2px auto; pointer-events: none; }
+        .cost { color: #ff0; font-weight: bold; font-size: 12px; }
         #sun-box { position: absolute; top: 15px; right: 20px; font-size: 32px; color: #ff0; font-weight: bold; text-shadow: 2px 2px #000; z-index: 10; }
         canvas { display: block; }
     </style>
@@ -23,19 +23,34 @@
 
 <div id="game-wrapper">
     <div id="menu">
-        <h1 style="color:#ff0">PVZ 机枪不卡顿版</h1>
-        <div class="btn" onclick="start('normal')">开始</div>
+        <h1 style="color:#ff0">PVZ · 路易16魔改版</h1>
+        <div class="btn" onclick="start('normal')">进入游戏</div>
         <div class="btn" onclick="start('mod')" style="color:#ff3131; border-color:#ff3131;">无限阳光</div>
     </div>
+
     <div id="toolbar">
-        <div class="card active" onclick="sel('pea', 100, this)"><img src="https://s1.chu0.com/src/img/gif/32/3241b777a98b48f98a3e743609879796.gif"><div class="cost">100</div>豌豆</div>
-        <div class="card" onclick="sel('repeater', 200, this)"><img src="https://s1.aigei.com/src/img/gif/67/67970d9a696245878d6509d3b8f8876c.gif"><div class="cost">200</div>双发</div>
-        <div class="card" onclick="sel('gatling', 250, this)"><img src="https://s1.chu0.com/prevfiles/6be92260c6424d28a7a8aade07cb23d8.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:uyjC9ovXHEXnBTuVGr7eOYbuaKE="><div class="cost">250</div>机枪</div>
-        <div class="card" onclick="sel('snowpea', 175, this)"><img src="https://s1.chu0.com/src/img/gif/3b/3bb997567dce4673abc620d6f92b6943.gif"><div class="cost">175</div>寒冰</div>
-        <div class="card" onclick="sel('torchwood', 175, this)"><img src="https://s1.chu0.com/src/img/gif/46/46301be226ca423aafb9e63b99e1872d.gif"><div class="cost">175</div>火炬</div>
-        <div class="card" onclick="sel('sunflower', 50, this)"><img src="https://s1.aigei.com/prevfiles/6aa0a6c2859140a4bdc6d0be549b14ab.gif"><div class="cost">50</div>葵</div>
-        <div class="card" onclick="sel('wallnut', 50, this)"><img src="https://s1.chu0.com/prevfiles/649b5e337e454145809433788a1ee770.gif"><div class="cost">50</div>坚果</div>
+        <div class="card active" onclick="sel('pea', 100, this)">
+            <img src="https://s1.aigei.com/prevfiles/0c48c399aa024288837b5db9214a7251.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:0MCPPPifyEncWX2yXeHcMKqtVa0=">
+            <div class="cost">100</div>豌豆
+        </div>
+        <div class="card" onclick="sel('repeater', 200, this)">
+            <img src="https://s1.chu0.com/src/img/gif/84/841d4abb6ac4416cbadab4ca8f38cd44.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:5zuNEsOdTyxH_6WDOpsD4OgZkEY=">
+            <div class="cost">200</div>双发
+        </div>
+        <div class="card" onclick="sel('cherry', 150, this)">
+            <img src="https://s1.aigei.com/prevfiles/5a4686e74c374bac930c5ebaebda4a12.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:OyySlfi61PYxOknNrdf5CV2FDWQ=">
+            <div class="cost">150</div>樱桃
+        </div>
+        <div class="card" onclick="sel('sunflower', 50, this)">
+            <img src="https://s1.aigei.com/prevfiles/1970c9beda3243949100b4eb9f4453f5.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:DSIZp4_WAt59X2K0B8EIQ7W21-o=">
+            <div class="cost">50</div>向日葵
+        </div>
+        <div class="card" onclick="sel('squash', 50, this)">
+            <img src="https://s1.chu0.com/prevfiles/e322eb1cbd3c4629887638b3cde1435d.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:JRDVjB_ANh2k6wa6tC_ZBPBCq7U=">
+            <div class="cost">50</div>倭瓜
+        </div>
     </div>
+
     <div id="sun-box">☀️ <span id="sun-val">250</span></div>
     <canvas id="gameCanvas"></canvas>
 </div>
@@ -47,20 +62,20 @@ cvs.width = 1000; cvs.height = 640;
 
 const img = {};
 const load = (k, v) => { img[k] = new Image(); img[k].src = v; };
-load('pea', "https://s1.chu0.com/src/img/gif/32/3241b777a98b48f98a3e743609879796.gif");
-load('repeater', "https://s1.aigei.com/src/img/gif/67/67970d9a696245878d6509d3b8f8876c.gif");
-load('gatling', "https://s1.chu0.com/prevfiles/6be92260c6424d28a7a8aade07cb23d8.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:uyjC9ovXHEXnBTuVGr7eOYbuaKE=");
-load('snowpea', "https://s1.chu0.com/src/img/gif/3b/3bb997567dce4673abc620d6f92b6943.gif");
-load('torchwood', "https://s1.chu0.com/src/img/gif/46/46301be226ca423aafb9e63b99e1872d.gif");
-load('sunflower', "https://s1.aigei.com/prevfiles/6aa0a6c2859140a4bdc6d0be549b14ab.gif");
-load('wallnut', "https://s1.chu0.com/prevfiles/649b5e337e454145809433788a1ee770.gif");
+
+// 资源加载
+load('pea', "https://s1.aigei.com/prevfiles/0c48c399aa024288837b5db9214a7251.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:0MCPPPifyEncWX2yXeHcMKqtVa0=");
+load('repeater', "https://s1.chu0.com/src/img/gif/84/841d4abb6ac4416cbadab4ca8f38cd44.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:5zuNEsOdTyxH_6WDOpsD4OgZkEY=");
+load('sunflower', "https://s1.aigei.com/prevfiles/1970c9beda3243949100b4eb9f4453f5.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:DSIZp4_WAt59X2K0B8EIQ7W21-o=");
+load('cherry', "https://s1.aigei.com/prevfiles/5a4686e74c374bac930c5ebaebda4a12.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:OyySlfi61PYxOknNrdf5CV2FDWQ=");
+load('boom', "https://s1.chu0.com/prevfiles/cf167a87e9f14411ae7734c039d81d9f.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:j0F9e2FSvd2eZnH07fgDJtQVq2w=");
+load('squash', "https://s1.chu0.com/prevfiles/e322eb1cbd3c4629887638b3cde1435d.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:JRDVjB_ANh2k6wa6tC_ZBPBCq7U=");
+load('sun', "https://s1.chu0.com/prevfiles/c5df756ba71b4cc192efa14b8320f64b.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:qr3Mhje4FeFBSERkl_AU6GNJEuw=");
 load('zombie', "https://s1.chu0.com/prevfiles/96eaef96cd134f3c9c9c9e6c20185022.gif");
-load('pea_bullet', "https://s1.aigei.com/src/img/gif/d6/d645f782c58a4369a45b7367c31766a0.gif");
-load('fire_bullet', "https://s1.chu0.com/prevfiles/53666e346fc2405e8379faf2dd9aa31f.gif");
-load('sun', "https://s1.aigei.com/prevfiles/4ac22e384ba04c15a36108f052c69eb6.gif");
+load('boss', "https://s1.chu0.com/prevfiles/26a3b77e34f748f09b80a348f5116a26.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:guWfQkrkVo8reVTrDgT-Xb7GyNs=");
 
 let sun = 250, mode = 'normal', activeP = 'pea', activeC = 100;
-let plants = [], zombies = [], bullets = [], suns = [], running = false, frame = 0;
+let plants = [], zombies = [], bullets = [], suns = [], effects = [], running = false, frame = 0;
 const grid = { x: 50, y: 110, size: 100 };
 
 function start(m) {
@@ -79,28 +94,39 @@ function sel(t, c, el) {
 function loop() {
     if(!running) return;
     ctx.clearRect(0, 0, 1000, 640);
+
     for(let r=0; r<5; r++) for(let c=0; c<9; c++) {
         ctx.fillStyle = (r+c)%2===0 ? '#4caf50' : '#81c784';
         ctx.fillRect(grid.x + c*grid.size, grid.y + r*grid.size, grid.size, grid.size);
     }
 
-    plants.forEach(p => {
+    plants.forEach((p, pi) => {
         if(img[p.t].complete) ctx.drawImage(img[p.t], p.x+10, p.y+10, 80, 80);
         p.timer++;
 
-        // 核心：队列射击逻辑，防止瞬间生成子弹导致计算卡死
-        if(p.t === 'sunflower' && p.timer % 450 === 0) suns.push({x: p.x+20, y: p.y+10, life: 500});
+        if(p.t === 'sunflower' && p.timer % 400 === 0) suns.push({x: p.x+20, y: p.y+10, life: 500});
         
-        let coolDown = 90; 
-        if(p.timer % coolDown === 0 && !['sunflower', 'wallnut', 'torchwood'].includes(p.t)) {
-            p.shotsPending = (p.t === 'gatling') ? 4 : (p.t === 'repeater' ? 2 : 1);
+        if(p.t === 'cherry' && p.timer > 60) {
+            effects.push({x: p.x-50, y: p.y-50, t: 'boom', life: 45});
+            zombies.forEach(z => {
+                let dx = (z.x+45) - (p.x+50), dy = (grid.y+z.row*100+45) - (p.y+50);
+                if(Math.sqrt(dx*dx + dy*dy) < 180) z.hp -= 1800;
+            });
+            plants.splice(pi, 1);
         }
 
-        // 每隔10帧射出一颗挂起的子弹，实现平滑连发
-        if(p.shotsPending > 0 && p.timer % 10 === 0) {
-            bullets.push({x: p.x+70, y: p.y+25, t: p.t==='snowpea'?'ice':'normal', row: p.row});
-            p.shotsPending--;
+        if(p.timer % 95 === 0 && (p.t === 'pea' || p.t === 'repeater')) {
+            p.pending = (p.t === 'repeater') ? 2 : 1;
         }
+        if(p.pending > 0 && p.timer % 12 === 0) {
+            bullets.push({x: p.x+70, y: p.y+25, t: 'bone_bullet', row: p.row});
+            p.pending--;
+        }
+    });
+
+    effects.forEach((ef, efi) => {
+        if(img[ef.t].complete) ctx.drawImage(img[ef.t], ef.x, ef.y, 200, 200);
+        ef.life--; if(ef.life <= 0) effects.splice(efi, 1);
     });
 
     suns.forEach((s, si) => {
@@ -110,42 +136,42 @@ function loop() {
 
     bullets.forEach((b, bi) => {
         b.x += 8;
-        if(b.t === 'normal') {
-            plants.some(p => {
-                if(p.t==='torchwood' && b.x > p.x && b.x < p.x+40 && b.row === p.row) {
-                    b.t='fire'; return true;
-                }
-            });
-        }
+        // 渲染骨头形状的子弹
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.roundRect(b.x, b.y+5, 22, 12, 5);
+        ctx.fill();
 
-        if(b.t==='fire') ctx.drawImage(img.fire_bullet, b.x, b.y, 50, 40);
-        else if(b.t==='ice') { ctx.fillStyle="#00f2ff"; ctx.beginPath(); ctx.arc(b.x+15, b.y+15, 10, 0, 7); ctx.fill(); }
-        else ctx.drawImage(img.pea_bullet, b.x, b.y, 35, 35);
-
-        zombies.forEach((z, zi) => {
+        zombies.forEach(z => {
             if(b.x > z.x && b.x < z.x+60 && b.row === z.row) {
-                z.hp -= (b.t==='fire'?45:20);
-                if(b.t==='ice') z.slow = 120;
+                z.hp -= 20;
                 bullets.splice(bi, 1);
             }
         });
         if(b.x > 1000) bullets.splice(bi, 1);
     });
 
-    if(frame % 200 === 0) zombies.push({x: 1000, row: Math.floor(Math.random()*5), hp: 150, slow: 0});
+    if(frame % 200 === 0) {
+        let isBoss = (frame > 0 && frame % 1600 === 0);
+        zombies.push({x: 1000, row: Math.floor(Math.random()*5), hp: isBoss?4000:150, t: isBoss?'boss':'zombie'});
+    }
+
     zombies.forEach((z, zi) => {
-        if(img.zombie.complete) ctx.drawImage(img.zombie, z.x, grid.y + z.row*grid.size, 90, 90);
-        let speed = (z.slow > 0) ? 0.3 : 0.6;
+        let size = (z.t === 'boss') ? 150 : 90;
+        let yOff = (z.t === 'boss') ? -40 : 0;
+        if(img[z.t].complete) ctx.drawImage(img[z.t], z.x, grid.y + z.row*grid.size + yOff, size, size);
+        
         let eating = false;
         plants.forEach((p, pi) => {
             if(z.x < p.x+45 && z.x > p.x && z.row === p.row) {
-                eating = true; p.hp -= 0.6;
+                eating = true; p.hp -= (z.t === 'boss' ? 4 : 0.6);
+                if(p.t === 'squash') { z.hp -= 1800; plants.splice(pi, 1); }
                 if(p.hp <= 0) plants.splice(pi, 1);
             }
         });
-        if(!eating) z.x -= speed;
+        if(!eating) z.x -= (z.t === 'boss' ? 0.4 : 0.7);
         if(z.hp <= 0) zombies.splice(zi, 1);
-        if(z.x < 0) { running = false; alert('游戏结束'); location.reload(); }
+        if(z.x < 0) { running = false; alert('路易16吃掉了你的脑子！'); location.reload(); }
     });
 
     frame++; requestAnimationFrame(loop);
@@ -157,8 +183,9 @@ cvs.onmousedown = (e) => {
     for(let i=0; i<suns.length; i++) {
         let s = suns[i];
         if(mx > s.x && mx < s.x+70 && my > s.y && my < s.y+70) {
-            suns.splice(i, 1); sun += (mode==='mod'?0:25);
-            document.getElementById('sun-val').innerText = sun; return;
+            suns.splice(i, 1); 
+            if(mode !== 'mod') { sun += 25; document.getElementById('sun-val').innerText = sun; }
+            return;
         }
     }
     const c = Math.floor((mx - grid.x) / grid.size), r = Math.floor((my - grid.y) / grid.size);
@@ -166,7 +193,7 @@ cvs.onmousedown = (e) => {
         const gx = grid.x + c*grid.size, gy = grid.y + r*grid.size;
         if(!plants.some(p => p.x === gx && p.y === gy)) {
             if(sun >= activeC || mode === 'mod') {
-                plants.push({x: gx, y: gy, row: r, t: activeP, hp: 120, timer: 0, shotsPending: 0});
+                plants.push({x: gx, y: gy, row: r, t: activeP, hp: 150, timer: 0, pending: 0});
                 if(mode !== 'mod') { sun -= activeC; document.getElementById('sun-val').innerText = sun; }
             }
         }
