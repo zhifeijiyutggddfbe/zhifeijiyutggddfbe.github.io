@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="referrer" content="no-referrer">
-    <title>PVZ 火焰子弹回归版</title>
+    <title>PVZ 全员集结版 - 最终修复版</title>
     <style>
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }
         #game-container { position: relative; width: 1000px; height: 640px; background: #4caf50; border: 4px solid #3e2723; box-sizing: border-box; transform-origin: center; overflow: hidden; }
@@ -27,8 +27,8 @@
 
 <div id="game-container">
     <div id="menu">
-        <h2 style="color:#ff0">PVZ · 火焰子弹回归</h2>
-        <div class="btn" onclick="start('normal')">挑战路易16</div>
+        <h2 style="color:#ff0">PVZ · 太阳逻辑修复版</h2>
+        <div class="btn" onclick="start('normal')">开始战斗</div>
         <div class="btn" onclick="start('mod')" style="color:#ff4444;">无限阳光</div>
     </div>
 
@@ -74,8 +74,6 @@ load('squash', "https://s1.chu0.com/prevfiles/e322eb1cbd3c4629887638b3cde1435d.g
 load('sun', "https://s1.chu0.com/prevfiles/c5df756ba71b4cc192efa14b8320f64b.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:qr3Mhje4FeFBSERkl_AU6GNJEuw=");
 load('zombie', "https://s1.chu0.com/prevfiles/96eaef96cd134f3c9c9c9e6c20185022.gif");
 load('boss', "https://s1.chu0.com/prevfiles/26a3b77e34f748f09b80a348f5116a26.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:guWfQkrkVo8reVTrDgT-Xb7GyNs=");
-
-// 严格使用原版火焰子弹贴图，不自己画
 load('fire_bullet', "https://s1.chu0.com/prevfiles/53666e346fc2405e8379faf2dd9aa31f.gif");
 
 let sun = 150, mode = 'normal', activeP = 'pea', activeC = 100, isShovel = false;
@@ -120,14 +118,22 @@ function loop() {
     plants.forEach((p, pi) => {
         if(img[p.t].complete) ctx.drawImage(img[p.t], p.x+10, p.y+10, 80, 80);
         p.timer++;
-        if(p.t === 'sunflower' && p.timer % 400 === 0) suns.push({x: p.x+20, y: p.y+10, vy: -2, life: 500});
+        
+        // 修正向日葵太阳逻辑：划出弧线并停留在草地上
+        if(p.t === 'sunflower' && p.timer % 400 === 0) {
+            suns.push({x: p.x+20, y: p.y+10, vy: -3, targetY: p.y+40, life: 500});
+        }
+        
         if(p.t === 'cherry' && p.timer > 60) {
             effects.push({x: p.x-100, y: p.y-100, t: 'boom', w: 300, h: 300, life: 40});
             zombies.forEach(z => {
-                if(Math.sqrt(Math.pow(z.x+45-(p.x+50),2)+Math.pow(grid.y+z.row*100+45-(p.y+50),2)) < 180) z.hp -= 2000;
+                let zGridX = (z.x - grid.x) / grid.size;
+                let pGridX = (p.x - grid.x) / grid.size;
+                if(Math.abs(zGridX - pGridX) <= 1.5 && Math.abs(z.row - p.row) <= 1) z.hp -= 2000;
             });
             plants.splice(pi, 1);
         }
+        
         if(p.timer % 95 === 0 && ['pea','repeater','snowpea'].includes(p.t)) {
             if(zombies.some(z => z.row === p.row && z.x > p.x)) p.pending = (p.t==='repeater'?2:1);
         }
@@ -138,22 +144,20 @@ function loop() {
 
     bullets.forEach((b, bi) => {
         b.x += 8;
-        // 经过火炬逻辑
         plants.forEach(p => {
             if(p.t === 'torchwood' && p.row === b.row && b.x > p.x + 20 && b.x < p.x + 60) {
-                if(b.t === 'ice') b.t = 'bone'; // 冰弹遇到火化作普通
-                else if(b.t === 'bone') b.t = 'fire'; // 普通变火球
+                if(b.t === 'ice') b.t = 'bone';
+                else if(b.t === 'bone') b.t = 'fire';
             }
         });
 
-        // 完全使用特效，不再自己画
-        if(b.t === 'fire') { ctx.drawImage(img.fire_bullet, b.x, b.y-10, 50, 40); }
+        if(b.t === 'fire') ctx.drawImage(img.fire_bullet, b.x, b.y-10, 50, 40);
         else if(b.t === 'ice') { ctx.fillStyle="#00f2ff"; ctx.beginPath(); ctx.arc(b.x+10, b.y+10, 8, 0, 7); ctx.fill(); }
         else { ctx.fillStyle="#fff"; ctx.beginPath(); ctx.roundRect(b.x, b.y+5, 22, 12, 5); ctx.fill(); }
 
         zombies.forEach(z => {
             if(b.x > z.x && b.x < z.x+60 && b.row === z.row) {
-                z.hp -= (b.t==='fire'?50:20); // 移除溅射伤害
+                z.hp -= (b.t==='fire'?50:20);
                 if(b.t==='ice') z.slow = 120;
                 bullets.splice(bi, 1);
             }
@@ -161,10 +165,19 @@ function loop() {
         if(b.x > 1000) bullets.splice(bi, 1);
     });
 
-    if(frame % 300 === 0) suns.push({x: Math.random()*800+100, y: -50, vy: 1.5, life: 600});
+    // 自然掉落太阳：掉到450高度停止
+    if(frame % 300 === 0) suns.push({x: Math.random()*800+100, y: -50, vy: 1.5, targetY: 450, life: 600});
+    
     suns.forEach((s, si) => {
         if(img.sun.complete) ctx.drawImage(img.sun, s.x, s.y, 70, 70);
-        if(s.y < 450) s.y += s.vy;
+        
+        // 太阳移动逻辑：到达 targetY 后停止
+        if(s.y < s.targetY) {
+            s.y += s.vy;
+            // 如果是向日葵产出的太阳，增加一个重力加速度
+            if(s.vy < 0 || s.y < s.targetY - 20) s.vy += 0.1; 
+        }
+        
         s.life--; if(s.life <= 0) suns.splice(si, 1);
     });
 
@@ -183,7 +196,6 @@ function loop() {
         plants.forEach((p, pi) => {
             if(z.x < p.x+45 && z.x > p.x-20 && z.row === p.row) {
                 eating = true; p.hp -= (z.t==='boss'?5:1);
-                // 倭瓜：修复特效位置和不混用
                 if(p.t === 'squash') { z.hp -= 2000; effects.push({x: p.x, y: p.y, t:'boom', w: 100, h: 100, life:10}); plants.splice(pi, 1); }
                 if(p.hp <= 0) plants.splice(pi, 1);
             }
