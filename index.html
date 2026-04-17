@@ -4,130 +4,164 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="referrer" content="no-referrer">
-    <title>PVZ 完整贴图版</title>
+    <title>PVZ 完整全植物版</title>
     <style>
         body { margin: 0; background: #1a1a1a; color: #fff; font-family: sans-serif; overflow: hidden; touch-action: none; }
-        #game-wrapper { position: relative; width: 900px; height: 600px; margin: 10px auto; background: #4caf50; border: 4px solid #3e2723; }
+        #game-wrapper { position: relative; width: 1000px; height: 640px; margin: 5px auto; background: #4caf50; border: 5px solid #3e2723; border-radius: 10px; }
         
-        /* 菜单层：现在默认显示，不再等待初始化 */
-        #menu-layer { position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .btn { padding: 15px 50px; margin: 15px; font-size: 24px; cursor: pointer; background: #4e342e; color: #fff; border: 3px solid #ffee00; border-radius: 10px; }
+        /* 模式层 */
+        #menu { position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .btn { padding: 15px 50px; margin: 10px; font-size: 24px; cursor: pointer; background: #4e342e; color: #fff; border: 2px solid #ff0; border-radius: 12px; }
         
-        #toolbar { position: absolute; top: 10px; left: 10px; display: flex; gap: 5px; background: rgba(0,0,0,0.5); padding: 5px; z-index: 10; }
-        .card { width: 65px; height: 90px; background: #333; border: 2px solid #666; cursor: pointer; text-align: center; font-size: 12px; }
-        .card.active { border-color: #ff0; box-shadow: 0 0 10px #ff0; }
-        .card img { width: 45px; height: 45px; display: block; margin: 4px auto; }
-        
-        #sun-val { position: absolute; top: 15px; right: 20px; font-size: 32px; color: #ff0; font-weight: bold; text-shadow: 2px 2px #000; }
+        /* 选卡栏（增加宽度容纳更多植物） */
+        #toolbar { position: absolute; top: 5px; left: 5px; display: flex; gap: 4px; background: rgba(0,0,0,0.7); padding: 5px; border-radius: 5px; z-index: 10; border: 1px solid #777; }
+        .card { width: 62px; height: 95px; background: #333; border: 2px solid #555; cursor: pointer; text-align: center; font-size: 10px; }
+        .card.active { border-color: #ff0; background: #444; box-shadow: 0 0 8px #ff0; }
+        .card img { width: 42px; height: 42px; display: block; margin: 2px auto; pointer-events: none; }
+        .cost { color: #ff0; font-weight: bold; font-size: 13px; }
+
+        #sun-box { position: absolute; top: 15px; right: 20px; font-size: 32px; color: #ff0; font-weight: bold; text-shadow: 2px 2px #000; z-index: 10; }
         canvas { display: block; }
     </style>
 </head>
 <body>
 
 <div id="game-wrapper">
-    <div id="menu-layer">
-        <h1 style="color:#ffee00; font-size: 40px;">植物大战僵尸</h1>
+    <div id="menu">
+        <h1 style="color:#ff0; font-size: 45px;">植物大战僵尸 · 全植物版</h1>
         <div class="btn" onclick="start('normal')">普通模式</div>
-        <div class="btn" onclick="start('mod')" style="color:#ff3131; border-color:#ff3131;">外挂模式 (无限阳光)</div>
+        <div class="btn" onclick="start('mod')" style="color:#ff3131; border-color:#ff3131;">破解版 (无限阳光)</div>
     </div>
 
     <div id="toolbar">
-        <div class="card active" onclick="sel('gatling', this, 200)">
-            <img src="https://s1.chu0.com/src/img/gif/84/841d4abb6ac4416cbadab4ca8f38cd44.gif">200
-        </div>
-        <div class="card" onclick="sel('snowpea', this, 175)">
-            <img src="https://s1.chu0.com/src/img/gif/3b/3bb997567dce4673abc620d6f92b6943.gif">175
-        </div>
-        <div class="card" onclick="sel('torchwood', this, 175)">
-            <img src="https://s1.chu0.com/src/img/gif/46/46301be226ca423aafb9e63b99e1872d.gif">175
-        </div>
-        <div class="card" onclick="sel('wallnut', this, 50)">
-            <img src="https://s1.chu0.com/prevfiles/649b5e337e454145809433788a1ee770.gif">50
-        </div>
+        <div class="card active" onclick="sel('pea', 100, this)"><img src="https://s1.chu0.com/src/img/gif/32/3241b777a98b48f98a3e743609879796.gif"><div class="cost">100</div>豌豆</div>
+        <div class="card" onclick="sel('repeater', 200, this)"><img src="https://s1.aigei.com/src/img/gif/67/67970d9a696245878d6509d3b8f8876c.gif"><div class="cost">200</div>双发</div>
+        <div class="card" onclick="sel('gatling', 250, this)"><img src="https://s1.chu0.com/src/img/gif/84/841d4abb6ac4416cbadab4ca8f38cd44.gif"><div class="cost">250</div>机枪</div>
+        <div class="card" onclick="sel('snowpea', 175, this)"><img src="https://s1.chu0.com/src/img/gif/3b/3bb997567dce4673abc620d6f92b6943.gif"><div class="cost">175</div>寒冰</div>
+        <div class="card" onclick="sel('torchwood', 175, this)"><img src="https://s1.chu0.com/src/img/gif/46/46301be226ca423aafb9e63b99e1872d.gif"><div class="cost">175</div>火炬</div>
+        <div class="card" onclick="sel('sunflower', 50, this)"><img src="https://s1.aigei.com/prevfiles/6aa0a6c2859140a4bdc6d0be549b14ab.gif"><div class="cost">50</div>向日葵</div>
+        <div class="card" onclick="sel('wallnut', 50, this)"><img src="https://s1.chu0.com/prevfiles/649b5e337e454145809433788a1ee770.gif"><div class="cost">50</div>坚果</div>
+        <div class="card" onclick="sel('squash', 50, this)"><img src="https://s1.chu0.com/prevfiles/e322eb1cbd3c4629887638b3cde1435d.gif"><div class="cost">50</div>倭瓜</div>
     </div>
 
-    <div id="sun-val">☀️ 250</div>
+    <div id="sun-box">☀️ <span id="sun-val">250</span></div>
     <canvas id="gameCanvas"></canvas>
 </div>
 
 <script>
 const cvs = document.getElementById('gameCanvas');
 const ctx = cvs.getContext('2d');
-cvs.width = 900; cvs.height = 600;
+cvs.width = 1000; cvs.height = 640;
 
-// 贴图库
 const img = {};
 const load = (k, v) => { img[k] = new Image(); img[k].src = v; };
-
+load('pea_p', "https://s1.chu0.com/src/img/gif/32/3241b777a98b48f98a3e743609879796.gif");
+load('repeater', "https://s1.aigei.com/src/img/gif/67/67970d9a696245878d6509d3b8f8876c.gif");
 load('gatling', "https://s1.chu0.com/src/img/gif/84/841d4abb6ac4416cbadab4ca8f38cd44.gif");
 load('snowpea', "https://s1.chu0.com/src/img/gif/3b/3bb997567dce4673abc620d6f92b6943.gif");
 load('torchwood', "https://s1.chu0.com/src/img/gif/46/46301be226ca423aafb9e63b99e1872d.gif");
+load('sunflower', "https://s1.aigei.com/prevfiles/6aa0a6c2859140a4bdc6d0be549b14ab.gif");
 load('wallnut', "https://s1.chu0.com/prevfiles/649b5e337e454145809433788a1ee770.gif");
+load('squash', "https://s1.chu0.com/prevfiles/e322eb1cbd3c4629887638b3cde1435d.gif");
 load('zombie', "https://s1.chu0.com/prevfiles/96eaef96cd134f3c9c9c9e6c20185022.gif");
-load('pea', "https://s1.aigei.com/src/img/gif/d6/d645f782c58a4369a45b7367c31766a0.gif");
-load('fire', "https://s1.chu0.com/prevfiles/53666e346fc2405e8379faf2dd9aa31f.gif");
+load('pea_bullet', "https://s1.aigei.com/src/img/gif/d6/d645f782c58a4369a45b7367c31766a0.gif");
+load('fire_bullet', "https://s1.chu0.com/prevfiles/53666e346fc2405e8379faf2dd9aa31f.gif");
+load('sun', "https://s1.aigei.com/prevfiles/4ac22e384ba04c15a36108f052c69eb6.gif");
 
-let sun = 250, mode = 'normal', active = 'gatling', activeCost = 200;
-let plants = [], zombies = [], bullets = [], running = false, frame = 0;
-const grid = { x: 45, y: 100, size: 95 };
+let sun = 250, mode = 'normal', activeP = 'pea', activeC = 100;
+let plants = [], zombies = [], bullets = [], suns = [], running = false, frame = 0;
+const grid = { x: 50, y: 110, size: 100 };
 
 function start(m) {
-    mode = m; sun = (m === 'mod') ? 99999 : 250;
-    document.getElementById('sun-val').innerText = "☀️ " + sun;
-    document.getElementById('menu-layer').style.display = 'none';
+    mode = m; sun = (m === 'mod') ? 999999 : 250;
+    document.getElementById('sun-val').innerText = sun;
+    document.getElementById('menu').style.display = 'none';
     running = true;
     loop();
 }
 
-function sel(t, el, cost) {
-    active = t; activeCost = cost;
-    document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+function sel(t, c, el) {
+    activeP = t; activeC = c;
+    document.querySelectorAll('.card').forEach(i => i.classList.remove('active'));
     el.classList.add('active');
 }
 
 function loop() {
     if(!running) return;
-    ctx.clearRect(0, 0, 900, 600);
+    ctx.clearRect(0, 0, 1000, 640);
 
-    // 草地
+    // 草坪
     for(let r=0; r<5; r++) for(let c=0; c<9; c++) {
         ctx.fillStyle = (r+c)%2===0 ? '#4caf50' : '#81c784';
         ctx.fillRect(grid.x + c*grid.size, grid.y + r*grid.size, grid.size, grid.size);
     }
 
-    // 植物
+    // 植物逻辑
     plants.forEach(p => {
-        if(img[p.t].complete) ctx.drawImage(img[p.t], p.x+10, p.y+10, 75, 75);
+        let pTag = (p.t === 'pea') ? 'pea_p' : p.t;
+        if(img[pTag].complete) ctx.drawImage(img[pTag], p.x+10, p.y+10, 80, 80);
         p.timer++;
-        if(p.timer % 90 === 0 && (p.t==='gatling' || p.t==='snowpea')) {
-            bullets.push({x: p.x+60, y: p.y+20, t: p.t==='snowpea'?'ice':'pea', row: p.row});
-            if(p.t === 'gatling') setTimeout(()=>bullets.push({x: p.x+60, y: p.y+20, t: 'pea', row: p.row}), 200);
+
+        // 攻击逻辑
+        if(p.timer % 90 === 0) {
+            if(p.t === 'pea' || p.t === 'snowpea') fire(p, 1);
+            if(p.t === 'repeater') fire(p, 2);
+            if(p.t === 'gatling') fire(p, 4);
         }
+        if(p.t === 'sunflower' && p.timer % 450 === 0) suns.push({x: p.x+20, y: p.y+10, life: 500});
     });
 
-    // 子弹逻辑 (火球联动)
-    bullets.forEach((b, i) => {
-        b.x += 7;
-        plants.forEach(p => { if(p.t==='torchwood' && b.x > p.x && b.x < p.x+50 && b.row === p.row) b.t='fire'; });
+    function fire(p, count) {
+        for(let i=0; i<count; i++) {
+            setTimeout(() => {
+                bullets.push({x: p.x+70, y: p.y+25, t: p.t==='snowpea'?'ice':'normal', row: p.row});
+            }, i * 150);
+        }
+    }
+
+    // 阳光渲染
+    suns.forEach((s, si) => {
+        if(img.sun.complete) ctx.drawImage(img.sun, s.x, s.y, 70, 70);
+        s.life--; if(s.life <= 0) suns.splice(si, 1);
+    });
+
+    // 子弹逻辑
+    bullets.forEach((b, bi) => {
+        b.x += 8;
+        // 火炬强化
+        plants.forEach(p => { if(p.t==='torchwood' && b.x > p.x && b.x < p.x+40 && b.row === p.row) b.t='fire'; });
         
-        let bImg = (b.t==='fire') ? img.fire : img.pea;
-        if(bImg.complete) ctx.drawImage(bImg, b.x, b.y, 40, 30);
-        
+        if(b.t==='fire') ctx.drawImage(img.fire_bullet, b.x, b.y, 50, 40);
+        else if(b.t==='ice') { ctx.fillStyle="#00f2ff"; ctx.beginPath(); ctx.arc(b.x+15, b.y+15, 8, 0, 7); ctx.fill(); }
+        else ctx.drawImage(img.pea_bullet, b.x, b.y, 35, 35);
+
         zombies.forEach((z, zi) => {
-            if(b.x > z.x && b.x < z.x+50 && b.row === z.row) {
-                z.hp -= (b.t==='fire'?40:20);
-                bullets.splice(i, 1);
-                if(z.hp <= 0) zombies.splice(zi, 1);
+            if(b.x > z.x && b.x < z.x+60 && b.row === z.row) {
+                z.hp -= (b.t==='fire'?45:20);
+                if(b.t==='ice') z.slow = 120;
+                bullets.splice(bi, 1);
             }
         });
-        if(b.x > 900) bullets.splice(i, 1);
+        if(b.x > 1000) bullets.splice(bi, 1);
     });
 
-    // 僵尸
-    if(frame % 200 === 0) zombies.push({x: 900, row: Math.floor(Math.random()*5), hp: 150});
-    zombies.forEach(z => {
-        if(img.zombie.complete) ctx.drawImage(img.zombie, z.x, grid.y + z.row*grid.size, 80, 80);
-        z.x -= 0.5;
+    // 僵尸逻辑
+    if(frame % 220 === 0) zombies.push({x: 1000, row: Math.floor(Math.random()*5), hp: 150, slow: 0});
+    zombies.forEach((z, zi) => {
+        if(img.zombie.complete) ctx.drawImage(img.zombie, z.x, grid.y + z.row*grid.size, 90, 90);
+        if(z.slow > 0) { ctx.fillStyle="rgba(0,180,255,0.3)"; ctx.fillRect(z.x, grid.y+z.row*grid.size, 90, 90); z.slow--; }
+
+        let speed = (z.slow > 0) ? 0.25 : 0.6;
+        let eating = false;
+        plants.forEach((p, pi) => {
+            if(z.x < p.x+45 && z.x > p.x && z.row === p.row) {
+                eating = true; p.hp -= 0.6;
+                if(p.t === 'squash') { z.hp = 0; plants.splice(pi, 1); }
+                if(p.hp <= 0) plants.splice(pi, 1);
+            }
+        });
+        if(!eating) z.x -= speed;
+        if(z.hp <= 0) zombies.splice(zi, 1);
         if(z.x < 0) { running = false; alert('游戏结束'); location.reload(); }
     });
 
@@ -135,19 +169,31 @@ function loop() {
     requestAnimationFrame(loop);
 }
 
-// 种植控制 (修复重复种植)
+// 种植控制
 cvs.onmousedown = (e) => {
     const rect = cvs.getBoundingClientRect();
     const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+
+    // 拾取阳光
+    for(let i=0; i<suns.length; i++) {
+        let s = suns[i];
+        if(mx > s.x && mx < s.x+70 && my > s.y && my < s.y+70) {
+            suns.splice(i, 1);
+            if(mode !== 'mod') { sun += 25; document.getElementById('sun-val').innerText = sun; }
+            return;
+        }
+    }
+
     const c = Math.floor((mx - grid.x) / grid.size);
     const r = Math.floor((my - grid.y) / grid.size);
 
     if(c >= 0 && c < 9 && r >= 0 && r < 5) {
         const gx = grid.x + c*grid.size, gy = grid.y + r*grid.size;
+        // 关键：检测格子
         if(!plants.some(p => p.x === gx && p.y === gy)) {
-            if(sun >= activeCost || mode === 'mod') {
-                plants.push({x: gx, y: gy, row: r, t: active, timer: 0});
-                if(mode !== 'mod') { sun -= activeCost; document.getElementById('sun-val').innerText = "☀️ " + sun; }
+            if(sun >= activeC || mode === 'mod') {
+                plants.push({x: gx, y: gy, row: r, t: activeP, hp: 120, timer: 0});
+                if(mode !== 'mod') { sun -= activeC; document.getElementById('sun-val').innerText = sun; }
             }
         }
     }
