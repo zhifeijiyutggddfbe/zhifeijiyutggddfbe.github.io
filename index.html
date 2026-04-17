@@ -3,273 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>植物大战僵尸 - 模式选择版</title>
+    <meta name="referrer" content="no-referrer">
+    <title>植物大战僵尸：路易16世 BOSS 版</title>
     <style>
-        body { margin: 0; background: #1a1a1a; color: #fff; font-family: 'Segoe UI', "Microsoft YaHei", sans-serif; overflow: hidden; touch-action: none; user-select: none; }
-        #game-wrapper { position: relative; width: 900px; height: 600px; margin: 20px auto; border: 4px solid #3e2723; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); overflow: hidden; background: #4caf50; }
+        body { margin: 0; background: #1a1a1a; color: #fff; font-family: sans-serif; overflow: hidden; touch-action: none; }
+        #game-wrapper { position: relative; width: 900px; height: 600px; margin: 10px auto; background: #4caf50; border: 4px solid #3e2723; }
         
         /* 菜单界面 */
-        #menu-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 100;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        #menu-overlay h1 { font-size: 50px; color: #ffee00; text-shadow: 3px 3px 0 #3e2723; margin-bottom: 40px; }
-        .menu-btn {
-            width: 260px; padding: 15px; margin: 10px; font-size: 22px; font-weight: bold;
-            text-align: center; border-radius: 12px; border: 3px solid #6d4c41;
-            cursor: pointer; transition: 0.2s; background: #4e342e; color: white;
-        }
-        .menu-btn:hover { background: #6d4c41; transform: scale(1.05); border-color: #ffee00; }
-        .btn-mod { border-color: #ff3131; color: #ff3131; }
-        .btn-mod:hover { background: #b71c1c; color: white; }
+        #menu-layer { position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .btn { padding: 15px 50px; margin: 15px; font-size: 24px; cursor: pointer; background: #4e342e; color: #fff; border: 3px solid #ffee00; border-radius: 10px; transition: 0.2s; }
+        .btn:hover { transform: scale(1.1); background: #6d4c41; }
 
-        /* 游戏 UI */
-        #toolbar { 
-            position: absolute; top: 10px; left: 10px; display: flex; gap: 8px; 
-            background: rgba(0, 0, 0, 0.6); padding: 8px; border-radius: 8px; border: 2px solid #6d4c41; z-index: 10;
-        }
-        .card { 
-            width: 60px; height: 85px; border: 2px solid #555; background: #333; 
-            cursor: pointer; display: flex; flex-direction: column; align-items: center; 
-            justify-content: center; border-radius: 4px; overflow: hidden;
-        }
-        .card.active { border-color: #ffee00; box-shadow: 0 0 10px #ffee00; }
-        .card img { width: 45px; height: 45px; object-fit: contain; }
-        .card-cost { font-size: 14px; font-weight: bold; color: #ffee00; margin-top: 4px; }
-
-        #stats { position: absolute; top: 15px; right: 20px; font-size: 28px; color: #ffee00; font-weight: bold; display: flex; align-items: center; gap: 8px; z-index: 10; }
-        #boss-warning {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 60px; font-weight: bold; color: #ff3131; text-shadow: 0 0 20px #ff3131;
-            display: none; animation: blink 1s infinite; pointer-events: none; z-index: 20;
-        }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+        /* 工具栏 */
+        #toolbar { position: absolute; top: 10px; left: 10px; display: flex; gap: 5px; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 5px; z-index: 10; }
+        .card { width: 60px; height: 80px; background: #333; border: 2px solid #666; cursor: pointer; text-align: center; font-size: 12px; }
+        .card.active { border-color: #ff0; box-shadow: 0 0 10px #ff0; }
+        .card img { width: 45px; height: 45px; display: block; margin: 2px auto; }
+        
+        #sun-val { position: absolute; top: 15px; right: 20px; font-size: 30px; color: #ff0; font-weight: bold; text-shadow: 2px 2px #000; }
+        #msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 60px; color: red; font-weight: bold; display: none; text-shadow: 0 0 20px #000; z-index: 50; }
         canvas { display: block; }
     </style>
 </head>
 <body>
 
 <div id="game-wrapper">
-    <div id="menu-overlay">
-        <h1>植物大战僵尸</h1>
-        <div class="menu-btn" onclick="startGame('normal')">普通模式</div>
-        <div class="menu-btn btn-mod" onclick="startGame('mod')">外挂模式 (无限资源)</div>
+    <div id="menu-layer">
+        <h1 style="color:#ffee00; font-size: 50px;">PVZ 完整版</h1>
+        <div class="btn" onclick="start('normal')">开始普通模式</div>
+        <div class="btn" onclick="start('mod')" style="color:#ff3131; border-color:#ff3131;">外挂模式 (无限阳光)</div>
     </div>
 
     <div id="toolbar">
-        <div class="card active" onclick="selectPlant('gatling', this)">
-            <img src="https://s1.chu0.com/src/img/gif/84/841d4abb6ac4416cbadab4ca8f38cd44.gif">
-            <div class="card-cost">200</div>
-        </div>
-        <div class="card" onclick="selectPlant('sunflower', this)">
-            <img src="https://s1.aigei.com/prevfiles/6aa0a6c2859140a4bdc6d0be549b14ab.gif">
-            <div class="card-cost">50</div>
-        </div>
-        <div class="card" onclick="selectPlant('wallnut', this)">
-            <img src="https://s1.chu0.com/prevfiles/649b5e337e454145809433788a1ee770.gif">
-            <div class="card-cost">50</div>
-        </div>
-        <div class="card" onclick="selectPlant('snowpea', this)">
-            <img src="https://s1.chu0.com/src/img/gif/3b/3bb997567dce4673abc620d6f92b6943.gif">
-            <div class="card-cost">175</div>
-        </div>
-        <div class="card" onclick="selectPlant('torchwood', this)">
-            <img src="https://s1.chu0.com/src/img/gif/46/46301be226ca423aafb9e63b99e1872d.gif">
-            <div class="card-cost">175</div>
-        </div>
-        <div class="card" onclick="selectPlant('squash', this)">
-            <img src="https://s1.chu0.com/prevfiles/e322eb1cbd3c4629887638b3cde1435d.gif">
-            <div class="card-cost">50</div>
-        </div>
+        <div class="card active" onclick="sel('gatling', this)"><img src="https://s1.chu0.com/src/img/gif/84/841d4abb6ac4416cbadab4ca8f38cd44.gif">200</div>
+        <div class="card" onclick="sel('snowpea', this)"><img src="https://s1.chu0.com/src/img/gif/3b/3bb997567dce4673abc620d6f92b6943.gif">175</div>
+        <div class="card" onclick="sel('torchwood', this)"><img src="https://s1.chu0.com/src/img/gif/46/46301be226ca423aafb9e63b99e1872d.gif">175</div>
+        <div class="card" onclick="sel('wallnut', this)"><img src="https://s1.chu0.com/prevfiles/649b5e337e454145809433788a1ee770.gif">50</div>
+        <div class="card" onclick="sel('sunflower', this)"><img src="https://s1.aigei.com/prevfiles/6aa0a6c2859140a4bdc6d0be549b14ab.gif">50</div>
+        <div class="card" onclick="sel('squash', this)"><img src="https://s1.chu0.com/prevfiles/e322eb1cbd3c4629887638b3cde1435d.gif">50</div>
     </div>
 
-    <div id="stats">☀️ <span id="sun-val">250</span></div>
-    <div id="boss-warning">BOSS 来临！</div>
+    <div id="sun-val">☀️ 250</div>
+    <div id="msg">BOSS 临近！</div>
     <canvas id="gameCanvas"></canvas>
 </div>
 
 <script>
-const assets = {};
-const load = (n, s) => { assets[n] = new Image(); assets[n].src = s; };
+const cvs = document.getElementById('gameCanvas');
+const ctx = cvs.getContext('2d');
+cvs.width = 900; cvs.height = 600;
 
-// 资源载入 (保留你提供的所有 GIF)
+const img = {};
+const load = (k, v) => { img[k] = new Image(); img[k].src = v; };
+
+// 载入你提供的全部素材
 load('gatling', "https://s1.chu0.com/src/img/gif/84/841d4abb6ac4416cbadab4ca8f38cd44.gif");
-load('sunflower', "https://s1.aigei.com/prevfiles/6aa0a6c2859140a4bdc6d0be549b14ab.gif");
-load('wallnut', "https://s1.chu0.com/prevfiles/649b5e337e454145809433788a1ee770.gif");
 load('snowpea', "https://s1.chu0.com/src/img/gif/3b/3bb997567dce4673abc620d6f92b6943.gif");
 load('torchwood', "https://s1.chu0.com/src/img/gif/46/46301be226ca423aafb9e63b99e1872d.gif");
+load('wallnut', "https://s1.chu0.com/prevfiles/649b5e337e454145809433788a1ee770.gif");
+load('sunflower', "https://s1.aigei.com/prevfiles/6aa0a6c2859140a4bdc6d0be549b14ab.gif");
 load('squash', "https://s1.chu0.com/prevfiles/e322eb1cbd3c4629887638b3cde1435d.gif");
-load('zombie_normal', "https://s1.chu0.com/prevfiles/96eaef96cd134f3c9c9c9e6c20185022.gif");
-load('zombie_cone', "https://s1.aigei.com/prevfiles/3ee20f9d1ed34e54a9f019b08ebf3ae3.gif");
-load('zombie_bucket', "https://s1.aigei.com/prevfiles/1e0bbb8f97c642b3a5c0d3fbacb3bdc5.gif");
-load('zombie_boss', "https://s1.aigei.com/src/img/gif/76/76b814fea7564c468e2a8e2d0f063e45.gif");
-load('zombie_boss_dead', "https://s1.chu0.com/prevfiles/7a8df65e1b254c0b972fc559932c0a1f.gif");
+load('z_normal', "https://s1.chu0.com/prevfiles/96eaef96cd134f3c9c9c9e6c20185022.gif");
+load('z_cone', "https://s1.aigei.com/prevfiles/3ee20f9d1ed34e54a9f019b08ebf3ae3.gif");
+load('z_bucket', "https://s1.aigei.com/prevfiles/1e0bbb8f97c642b3a5c0d3fbacb3bdc5.gif");
+load('z_boss', "https://s1.aigei.com/src/img/gif/76/76b814fea7564c468e2a8e2d0f063e45.gif");
+load('z_boss_dead', "https://s1.chu0.com/prevfiles/7a8df65e1b254c0b972fc559932c0a1f.gif");
 load('sun', "https://s1.aigei.com/prevfiles/4ac22e384ba04c15a36108f052c69eb6.gif");
-load('peabullet', "https://s1.aigei.com/src/img/gif/d6/d645f782c58a4369a45b7367c31766a0.gif");
-load('fireball', "https://s1.chu0.com/prevfiles/53666e346fc2405e8379faf2dd9aa31f.gif");
+load('pea', "https://s1.aigei.com/src/img/gif/d6/d645f782c58a4369a45b7367c31766a0.gif");
+load('fire', "https://s1.chu0.com/prevfiles/53666e346fc2405e8379faf2dd9aa31f.gif");
 
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-canvas.width = 900; canvas.height = 600;
+let sun = 250, mode = 'normal', active = 'gatling', running = false;
+let plants = [], zombies = [], bullets = [], suns = [], gameFrame = 0;
 
-let sunCount = 250, selectedPlant = 'gatling', gameFrame = 0, gameMode = 'normal';
-let isRunning = false;
-const grid = { rows: 5, cols: 9, cellSize: 95, startX: 45, startY: 100 };
-const plants = [], zombies = [], projectiles = [], suns = [];
-
-function startGame(mode) {
-    gameMode = mode;
-    if (mode === 'mod') {
-        sunCount = 99999;
-        document.getElementById('sun-val').innerText = "99999";
-    }
-    document.getElementById('menu-overlay').style.display = 'none';
-    isRunning = true;
+function start(m) {
+    mode = m; sun = (m === 'mod') ? 99999 : 250;
+    updateSun();
+    document.getElementById('menu-layer').style.display = 'none';
+    running = true;
     animate();
 }
 
+function updateSun() { document.getElementById('sun-val').innerText = "☀️ " + sun; }
+function sel(t, e) { active = t; document.querySelectorAll('.card').forEach(c => c.classList.remove('active')); e.classList.add('active'); }
+
 class Plant {
-    constructor(x, y, type) {
-        this.x = x; this.y = y; this.type = type;
-        this.hp = type === 'wallnut' ? 2000 : 150;
-        this.timer = 0; this.isSquashing = false;
+    constructor(x, y, t) {
+        this.x = x; this.y = y; this.t = t;
+        this.hp = (t === 'wallnut') ? 2000 : 150;
+        this.timer = 0; this.squashed = false;
+    }
+    draw() {
+        if(img[this.t].complete) ctx.drawImage(img[this.t], this.x+10, this.y+10, 75, 75);
+        else { ctx.fillStyle='green'; ctx.fillRect(this.x+20, this.y+20, 50, 50); ctx.fillStyle='#fff'; ctx.fillText(this.t, this.x+25, this.y+50); }
     }
     update() {
         this.timer++;
-        // 射手类逻辑
-        if ((this.type === 'gatling' || this.type === 'snowpea') && this.timer % 90 === 0) {
-            const bType = this.type === 'snowpea' ? 'ice' : 'pea';
-            projectiles.push({ x: this.x + 60, y: this.y + 15, speed: 7, type: bType });
-            if(this.type === 'gatling') setTimeout(()=>projectiles.push({ x: this.x + 60, y: this.y + 15, speed: 7, type: bType }), 150);
+        if((this.t === 'gatling' || this.t === 'snowpea') && this.timer % 90 === 0) {
+            bullets.push({x:this.x+60, y:this.y+20, t: (this.t==='snowpea'?'ice':'pea')});
+            if(this.t==='gatling') setTimeout(()=>bullets.push({x:this.x+60, y:this.y+20, t:'pea'}), 200);
         }
-        // 向日葵逻辑
-        if (this.type === 'sunflower' && this.timer % 400 === 0) {
-            suns.push({ x: this.x + 20, y: this.y + 20, life: 600, size: 80 });
-        }
+        if(this.t === 'sunflower' && this.timer % 400 === 0) suns.push({x:this.x+Math.random()*40, y:this.y+30, life:500});
     }
-    draw() { ctx.drawImage(assets[this.type], this.x + 10, this.y + 10, 75, 75); }
 }
 
 class Zombie {
-    constructor(type) {
-        this.type = type; this.x = canvas.width;
-        this.y = grid.startY + Math.floor(Math.random()*5) * grid.cellSize;
-        this.hp = type === 'boss' ? 3000 : (type === 'bucket' ? 600 : 150);
-        this.isDead = false; this.freeze = 0;
-    }
-    update() {
-        if(this.isDead) return;
-        let speed = this.type === 'boss' ? 0.3 : 0.5;
-        if(this.freeze > 0) { this.freeze--; speed *= 0.5; }
-        
-        let eating = false;
-        plants.forEach((p, i) => {
-            if (this.x < p.x + 50 && this.x > p.x && this.y === p.y) {
-                eating = true; p.hp -= 1;
-                if(p.type === 'squash' && !p.isSquashing) {
-                    p.isSquashing = true; 
-                    zombies.forEach(z => { if(z.x >= p.x && z.x < p.x+150 && z.y === p.y) z.hp -= 2000; });
-                    setTimeout(()=>plants.splice(i, 1), 300);
-                }
-                if (p.hp <= 0) plants.splice(i, 1);
-            }
-        });
-        if (!eating) this.x -= speed;
+    constructor(t) {
+        this.t = t; this.x = 900; this.y = 100 + Math.floor(Math.random()*5)*95;
+        this.hp = (t==='boss'?3000:(t==='bucket'?600:150));
+        this.fullHp = this.hp; this.dead = false; this.freeze = 0;
     }
     draw() {
-        let img = this.isDead ? assets.zombie_boss_dead : assets['zombie_' + (this.type === 'boss' ? 'boss' : (this.type === 'bucket'?'bucket':'normal'))];
-        ctx.drawImage(img, this.x, this.y, 90, 90);
-        if(this.freeze > 0) { ctx.fillStyle = "rgba(0,100,255,0.3)"; ctx.fillRect(this.x, this.y, 90, 90); }
+        let curImg = this.dead ? img.z_boss_dead : img['z_'+this.t];
+        ctx.drawImage(curImg, this.x, this.y-10, 100, 100);
+        if(this.freeze > 0) { ctx.fillStyle='rgba(0,191,255,0.4)'; ctx.fillRect(this.x, this.y, 80, 80); }
+        // BOSS 血条
+        if(this.t === 'boss' && !this.dead) {
+            ctx.fillStyle='red'; ctx.fillRect(this.x, this.y-20, 80, 5);
+            ctx.fillStyle='lime'; ctx.fillRect(this.x, this.y-20, (this.hp/this.fullHp)*80, 5);
+        }
     }
 }
 
 function animate() {
-    if(!isRunning) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // 青绿分格草地
-    for(let r=0; r<grid.rows; r++) {
-        for(let c=0; c<grid.cols; c++) {
-            ctx.fillStyle = (r + c) % 2 === 0 ? '#4caf50' : '#81c784';
-            ctx.fillRect(grid.startX + c*grid.cellSize, grid.startY + r*grid.cellSize, grid.cellSize, grid.cellSize);
-        }
+    if(!running) return;
+    ctx.clearRect(0,0,900,600);
+    // 草坪
+    for(let r=0; r<5; r++) for(let c=0; c<9; c++) {
+        ctx.fillStyle = (r+c)%2===0 ? '#4caf50' : '#81c784';
+        ctx.fillRect(45+c*95, 100+r*95, 95, 95);
     }
 
-    // 绘制植物、阳光
     plants.forEach(p => { p.update(); p.draw(); });
-    suns.forEach((s, i) => { ctx.drawImage(assets.sun, s.x, s.y, s.size, s.size); s.life--; if(s.life<=0) suns.splice(i, 1); });
+    suns.forEach((s, i) => { ctx.drawImage(img.sun, s.x, s.y, 70, 70); s.life--; if(s.life<0) suns.splice(i,1); });
 
-    // 子弹逻辑
-    projectiles.forEach((proj, i) => {
-        proj.x += proj.speed;
+    bullets.forEach((b, i) => {
+        b.x += 7;
         // 火炬加强逻辑
-        plants.forEach(p => { if(p.type === 'torchwood' && proj.x > p.x && proj.x < p.x+50 && proj.y === p.y) proj.type = 'fire'; });
+        plants.forEach(p => { if(p.t==='torchwood' && b.x>p.x && b.x<p.x+50 && b.y>p.y && b.y<p.y+95) b.t='fire'; });
         
-        if(proj.type === 'fire') ctx.drawImage(assets.fireball, proj.x, proj.y, 50, 35);
-        else if(proj.type === 'ice') { ctx.fillStyle="#00f2ff"; ctx.beginPath(); ctx.arc(proj.x, proj.y+20, 8, 0, Math.PI*2); ctx.fill(); }
-        else ctx.drawImage(assets.peabullet, proj.x, proj.y, 35, 25);
+        let bImg = b.t==='fire' ? img.fire : img.pea;
+        ctx.drawImage(bImg, b.x, b.y, 40, 30);
+        if(b.t==='ice') { ctx.fillStyle='#0ff'; ctx.beginPath(); ctx.arc(b.x+15, b.y+15, 8, 0, 7); ctx.fill(); }
 
         zombies.forEach(z => {
-            if(!z.isDead && proj.x > z.x && proj.x < z.x+50 && proj.y > z.y && proj.y < z.y+90) {
-                z.hp -= (proj.type === 'fire' ? 50 : 20);
-                if(proj.type === 'ice') z.freeze = 300;
-                projectiles.splice(i, 1);
+            if(!z.dead && b.x > z.x && b.x < z.x+60 && b.y > z.y && b.y < z.y+95) {
+                z.hp -= (b.t==='fire'?40:20);
+                if(b.t==='ice') z.freeze = 200;
+                bullets.splice(i,1);
             }
         });
+        if(b.x > 900) bullets.splice(i,1);
     });
 
-    // 僵尸生成
-    if (gameFrame % 300 === 0) zombies.push(new Zombie(gameFrame > 3000 ? 'bucket' : 'normal'));
-    if (gameFrame === 4000) { document.getElementById('boss-warning').style.display = 'block'; }
-    if (gameFrame === 4300) { document.getElementById('boss-warning').style.display = 'none'; zombies.push(new Zombie('boss')); }
+    if(gameFrame % 300 === 0) zombies.push(new Zombie(gameFrame>3000?'bucket':'normal'));
+    if(gameFrame === 4500) { document.getElementById('msg').style.display='block'; setTimeout(()=>document.getElementById('msg').style.display='none', 2000); }
+    if(gameFrame === 4800) zombies.push(new Zombie('boss'));
 
     zombies.forEach((z, i) => {
-        z.update(); z.draw();
-        if (z.hp <= 0 && !z.isDead) {
-            if(z.type === 'boss') { z.isDead = true; setTimeout(()=>zombies.splice(i, 1), 2000); }
-            else zombies.splice(i, 1);
+        if(!z.dead) {
+            let speed = (z.t==='boss'?0.3:0.5); if(z.freeze > 0) { speed *= 0.5; z.freeze--; }
+            let eating = false;
+            plants.forEach((p, pi) => {
+                if(z.x < p.x+50 && z.x > p.x && z.y === p.y) {
+                    eating = true; p.hp -= 1;
+                    if(p.t==='squash') { z.hp -= 2000; plants.splice(pi, 1); }
+                    if(p.hp <= 0) plants.splice(pi, 1);
+                }
+            });
+            if(!eating) z.x -= speed;
         }
-        if (z.x < 0) { isRunning = false; alert("脑子被吃掉了！"); location.reload(); }
+        z.draw();
+        if(z.hp <= 0 && !z.dead) { 
+            if(z.t === 'boss') { z.dead = true; setTimeout(()=>zombies.splice(i,1), 2000); } 
+            else zombies.splice(i,1); 
+        }
+        if(z.x < 0) { alert('脑子被吃掉了！'); location.reload(); }
     });
 
     gameFrame++;
     requestAnimationFrame(animate);
 }
 
-// 收集阳光与种植
-canvas.addEventListener('mousedown', (e) => {
-    const rect = canvas.getBoundingClientRect();
+cvs.onmousedown = (e) => {
+    const rect = cvs.getBoundingClientRect();
     const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-
-    // 拾取阳光
+    
+    // 捡阳光
     suns.forEach((s, i) => {
-        if (mx > s.x && mx < s.x + s.size && my > s.y && my < s.y + s.size) {
-            suns.splice(i, 1);
-            if(gameMode !== 'mod') { sunCount += 25; document.getElementById('sun-val').innerText = sunCount; }
-            return;
-        }
+        if(mx > s.x && mx < s.x+80 && my > s.y && my < s.y+80) { suns.splice(i,1); if(mode!=='mod') sun += 25; updateSun(); return; }
     });
 
-    // 种植
-    const col = Math.floor((mx - grid.startX) / grid.cellSize);
-    const row = Math.floor((my - grid.startY) / grid.cellSize);
-    if (col >= 0 && col < grid.cols && row >= 0 && row < grid.rows) {
-        const gx = grid.startX + col * grid.cellSize, gy = grid.startY + row * grid.cellSize;
-        if (plants.some(p => p.x === gx && p.y === gy)) return;
-
-        const cost = (gameMode === 'mod') ? 0 : 50; // 外挂模式 0 消耗
-        if (sunCount >= cost) {
-            plants.push(new Plant(gx, gy, selectedPlant));
-            if(gameMode !== 'mod') { sunCount -= cost; document.getElementById('sun-val').innerText = sunCount; }
-        }
+    const c = Math.floor((mx-45)/95), r = Math.floor((my-100)/95);
+    if(c>=0 && c<9 && r>=0 && r<5) {
+        const gx = 45+c*95, gy = 100+r*95;
+        if(plants.some(p=>p.x===gx && p.y===gy)) return;
+        const cost = (mode==='mod') ? 0 : 50;
+        if(sun >= cost) { plants.push(new Plant(gx, gy, active)); if(mode!=='mod') sun -= cost; updateSun(); }
     }
-});
-
-function selectPlant(type, el) {
-    selectedPlant = type;
-    document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
-    el.classList.add('active');
 }
 </script>
 </body>
