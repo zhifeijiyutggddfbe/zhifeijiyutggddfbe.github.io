@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="referrer" content="no-referrer">
-    <title>PVZ 草地防线版</title>
+    <title>PVZ 草地增强版 - 割草机引擎发动</title>
     <style>
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #222; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #1a1a1a; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: 'Microsoft YaHei', sans-serif; }
         #game-container { 
             position: relative; 
             width: 1000px; 
@@ -16,15 +16,16 @@
             box-sizing: border-box; 
             transform-origin: center; 
             overflow: hidden; 
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
         }
         #menu { position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .btn { padding: 12px 40px; margin: 10px; font-size: 20px; cursor: pointer; background: #4e342e; color: #fff; border: 2px solid #ff0; border-radius: 12px; }
+        .btn { padding: 12px 40px; margin: 10px; font-size: 20px; cursor: pointer; background: #4e342e; color: #fff; border: 2px solid #ff0; border-radius: 12px; transition: 0.2s; }
+        .btn:hover { transform: scale(1.1); background: #5d4037; }
         
         #toolbar { position: absolute; top: 5px; left: 5px; display: flex; gap: 5px; background: rgba(0,0,0,0.7); padding: 5px; border-radius: 5px; z-index: 10; border: 1px solid #444; align-items: center; }
         .card { width: 62px; height: 85px; background: #555; border: 2px solid #333; cursor: pointer; text-align: center; position: relative; overflow: hidden; }
         .card.active { border-color: #0f0; background: #666; }
-        .card.cooldown::after { content: ""; position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.6); height: var(--cd, 0%); }
+        .card::after { content: ""; position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.6); height: var(--cd, 0%); }
         .card img { width: 38px; height: 38px; display: block; margin: 2px auto; pointer-events: none; }
         .cost { color: #ff0; font-weight: bold; font-size: 11px; }
         .name { font-size: 9px; color: #fff; }
@@ -41,7 +42,7 @@
 
 <div id="game-container">
     <div id="menu">
-        <h2 style="color:#ff0">PVZ · 割草机防线版</h2>
+        <h2 style="color:#ff0">PVZ · 割草机引擎修复版</h2>
         <div class="btn" onclick="start('normal')">正常模式</div>
         <div class="btn" onclick="start('mod')" style="color:#ff4444;">无限阳光</div>
     </div>
@@ -66,17 +67,11 @@
 </div>
 
 <script>
-const container = document.getElementById('game-container');
 const cvs = document.getElementById('gameCanvas');
 const ctx = cvs.getContext('2d');
 cvs.width = 1000; cvs.height = 640;
 
-function resize() {
-    const scale = Math.min(window.innerWidth / 1000, window.innerHeight / 640);
-    container.style.transform = `scale(${scale})`;
-}
-window.addEventListener('resize', resize); resize();
-
+// 资源加载
 const img = {};
 const load = (k, v) => { img[k] = new Image(); img[k].src = v; };
 load('pea', "https://s1.aigei.com/prevfiles/0c48c399aa024288837b5db9214a7251.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:0MCPPPifyEncWX2yXeHcMKqtVa0=");
@@ -92,29 +87,25 @@ load('sun', "https://s1.chu0.com/prevfiles/c5df756ba71b4cc192efa14b8320f64b.gif?
 load('zombie', "https://s1.chu0.com/prevfiles/96eaef96cd134f3c9c9c9e6c20185022.gif");
 load('boss', "https://s1.chu0.com/prevfiles/26a3b77e34f748f09b80a348f5116a26.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:guWfQkrkVo8reVTrDgT-Xb7GyNs=");
 load('fire_bullet', "https://s1.chu0.com/prevfiles/53666e346fc2405e8379faf2dd9aa31f.gif");
-// 割草机贴图
 load('mower', "https://s1.aigei.com/prevfiles/5f6396e953184a44b934789f257d0792.png?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:ZfWlX3M6u7-XW97v60G5K3y0L4A=");
 
 let sun = 150, mode = 'normal', activeP = 'pea', activeC = 100, isShovel = false;
-let plants = [], zombies = [], bullets = [], suns = [], effects = [], mowers = [], running = false, frame = 0;
+let plants = [], zombies = [], bullets = [], suns = [], mowers = [], effects = [], running = false, frame = 0;
 const cooldowns = { pea:0, repeater:0, sunflower:0, cherry:0, squash:0, snowpea:0, torchwood:0, wallnut:0 };
 const CD_MAX = { pea:90, repeater:180, sunflower:90, cherry:800, squash:400, snowpea:180, torchwood:180, wallnut:400 };
 
-// 网格参数
-const grid = { x: 140, y: 100, w: 85, h: 100, rows: 5, cols: 9 }; 
+const grid = { x: 140, y: 100, w: 85, h: 100, rows: 5, cols: 9 };
 
 function initMowers() {
     mowers = [];
     for(let r=0; r<grid.rows; r++) {
-        mowers.push({x: 60, y: grid.y + r*grid.h + 10, row: r, active: false, used: false});
+        mowers.push({ x: 60, y: grid.y + r*grid.h + 20, row: r, active: false, used: false, shake: 0 });
     }
 }
 
 function drawBackground() {
-    ctx.fillStyle = "#4caf50";
+    ctx.fillStyle = "#388e3c"; // 左侧出兵深绿
     ctx.fillRect(0, 0, 1000, 640);
-    ctx.fillStyle = "#388e3c";
-    ctx.fillRect(0, 0, 140, 640);
     for(let r=0; r<grid.rows; r++) {
         for(let c=0; c<grid.cols; c++) {
             ctx.fillStyle = (r + c) % 2 === 0 ? "#45a049" : "#4caf50";
@@ -131,43 +122,40 @@ function start(m) {
     running = true; loop();
 }
 
-function sel(t, c, el) {
-    isShovel = false; 
-    document.getElementById('shovel').classList.remove('active');
-    activeP = t; activeC = c;
-    document.querySelectorAll('.card').forEach(i => i.classList.remove('active'));
-    el.classList.add('active');
-}
-
-function useShovel() {
-    isShovel = !isShovel;
-    document.getElementById('shovel').classList.toggle('active', isShovel);
-    if(isShovel) { activeP = null; document.querySelectorAll('.card').forEach(i => i.classList.remove('active')); }
-}
-
 function loop() {
     if(!running) return;
     drawBackground();
 
+    // 更新冷却
     for(let k in cooldowns) if(cooldowns[k]>0) {
         cooldowns[k]--;
         document.getElementById('card-'+k).style.setProperty('--cd', (cooldowns[k]/CD_MAX[k]*100)+'%');
     }
 
-    // 绘制与处理割草机
+    // 绘制与逻辑：割草机 (物理动画版)
     mowers.forEach((m, mi) => {
         if(!m.used) {
-            if(img.mower.complete) ctx.drawImage(img.mower, m.x, m.y, 70, 60);
-            if(m.active) {
-                m.x += 15;
-                zombies.forEach(z => {
-                    if(z.row === m.row && z.x < m.x + 50) z.hp -= 5000;
-                });
-                if(m.x > 1000) m.used = true;
+            if(img.mower.complete) {
+                ctx.save();
+                let ox = 0, oy = 0;
+                if(m.active) {
+                    ox = (Math.random() - 0.5) * 4; // 高频引擎抖动
+                    oy = (Math.random() - 0.5) * 4;
+                    m.x += 16;
+                    // 生成烟尘粒子
+                    if(frame % 2 === 0) {
+                        effects.push({ x: m.x, y: m.y+40, t:'smoke', life: 15, vx: -2, vy: -Math.random() });
+                    }
+                    zombies.forEach(z => { if(z.row === m.row && z.x < m.x + 60) z.hp -= 5000; });
+                    if(m.x > 1050) m.used = true;
+                }
+                ctx.drawImage(img.mower, m.x + ox, m.y + oy, 75, 65);
+                ctx.restore();
             }
         }
     });
 
+    // 植物逻辑
     plants.forEach((p, pi) => {
         if(img[p.t].complete) ctx.drawImage(img[p.t], p.x+5, p.y+10, 75, 85);
         p.timer++;
@@ -185,6 +173,7 @@ function loop() {
         }
     });
 
+    // 子弹逻辑
     bullets.forEach((b, bi) => {
         b.x += 8;
         plants.forEach(p => {
@@ -203,29 +192,26 @@ function loop() {
         if(b.x > 1000) bullets.splice(bi, 1);
     });
 
-    if(frame % 300 === 0) suns.push({x: Math.random()*500+300, y: -50, vy: 1.5, targetY: 480, life: 600});
+    // 阳光逻辑
+    if(frame % 300 === 0) suns.push({x: Math.random()*500+300, y: -50, vy: 1.5, targetY: Math.random()*300+150, life: 600});
     suns.forEach((s, si) => {
         if(img.sun.complete) ctx.drawImage(img.sun, s.x, s.y, 65, 65);
         if(s.y < s.targetY) { s.y += s.vy; if(s.vy < 0 || s.y < s.targetY - 20) s.vy += 0.1; }
         s.life--; if(s.life <= 0) suns.splice(si, 1);
     });
 
+    // 僵尸逻辑
     if(frame % 240 === 0) {
         let isBoss = (frame > 0 && frame % 1200 === 0);
         zombies.push({x: 1000, row: Math.floor(Math.random()*5), hp: isBoss?3500:150, t: isBoss?'boss':'zombie', slow: 0});
     }
-
     zombies.forEach((z, zi) => {
         if(z.slow > 0) z.slow--;
         let speed = (z.slow > 0) ? 0.35 : 0.75;
-        let size = (z.t==='boss'?150:90), yOff = (z.t==='boss'?-40:0);
-        if(img[z.t].complete) ctx.drawImage(img[z.t], z.x, grid.y + z.row*grid.h + yOff, size, size);
+        if(img[z.t].complete) ctx.drawImage(img[z.t], z.x, grid.y + z.row*grid.h + (z.t==='boss'?-40:0), (z.t==='boss'?150:90), (z.t==='boss'?150:90));
         
-        // 割草机碰撞检测
         let myMower = mowers.find(m => m.row === z.row && !m.used);
-        if(myMower && z.x < myMower.x + 40) {
-            myMower.active = true;
-        }
+        if(myMower && z.x < myMower.x + 40) myMower.active = true;
 
         let eating = false;
         plants.forEach((p, pi) => {
@@ -237,11 +223,18 @@ function loop() {
         });
         if(!eating) z.x -= speed;
         if(z.hp <= 0) zombies.splice(zi, 1);
-        if(z.x < 10) { running = false; alert('游戏结束：僵尸突破了防线！'); location.reload(); }
+        if(z.x < 10) { running = false; alert('游戏结束！'); location.reload(); }
     });
 
+    // 特效逻辑 (包含烟尘)
     effects.forEach((ef, efi) => {
-        if(img[ef.t].complete) ctx.drawImage(img[ef.t], ef.x, ef.y, ef.w||200, ef.h||200);
+        if(ef.t === 'smoke') {
+            ctx.fillStyle = `rgba(200, 200, 200, ${ef.life/15})`;
+            ctx.beginPath(); ctx.arc(ef.x, ef.y, 4+(15-ef.life), 0, 7); ctx.fill();
+            ef.x += ef.vx; ef.y += ef.vy;
+        } else if(img[ef.t].complete) {
+            ctx.drawImage(img[ef.t], ef.x, ef.y, ef.w||200, ef.h||200);
+        }
         ef.life--; if(ef.life<=0) effects.splice(efi, 1);
     });
 
@@ -249,7 +242,7 @@ function loop() {
 }
 
 function handleInput(clientX, clientY) {
-    const rect = container.getBoundingClientRect();
+    const rect = cvs.getBoundingClientRect();
     const scale = rect.width / 1000;
     const mx = (clientX - rect.left) / scale, my = (clientY - rect.top) / scale;
 
@@ -275,8 +268,26 @@ function handleInput(clientX, clientY) {
     }
 }
 
+function sel(t, c, el) {
+    isShovel = false; document.getElementById('shovel').classList.remove('active');
+    activeP = t; activeC = c;
+    document.querySelectorAll('.card').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+}
+
+function useShovel() {
+    isShovel = !isShovel; document.getElementById('shovel').classList.toggle('active', isShovel);
+    if(isShovel) { activeP = null; document.querySelectorAll('.card').forEach(i => i.classList.remove('active')); }
+}
+
 cvs.addEventListener('mousedown', (e) => handleInput(e.clientX, e.clientY));
 cvs.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(e.touches[0].clientX, e.touches[0].clientY); });
+
+window.addEventListener('resize', () => {
+    const scale = Math.min(window.innerWidth / 1000, window.innerHeight / 640);
+    document.getElementById('game-container').style.transform = `scale(${scale})`;
+});
+window.dispatchEvent(new Event('resize'));
 </script>
 </body>
 </html>
