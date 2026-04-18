@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="referrer" content="no-referrer">
-    <title>PVZ 纯代码草地版</title>
+    <title>PVZ 草地防线版</title>
     <style>
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #222; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }
         #game-container { 
             position: relative; 
             width: 1000px; 
             height: 640px; 
-            background: #45a049; /* 备选底色 */
+            background: #4caf50; 
             border: 6px solid #3e2723; 
             box-sizing: border-box; 
             transform-origin: center; 
@@ -41,7 +41,7 @@
 
 <div id="game-container">
     <div id="menu">
-        <h2 style="color:#ff0">PVZ · 纯代码草地版</h2>
+        <h2 style="color:#ff0">PVZ · 割草机防线版</h2>
         <div class="btn" onclick="start('normal')">正常模式</div>
         <div class="btn" onclick="start('mod')" style="color:#ff4444;">无限阳光</div>
     </div>
@@ -77,7 +77,6 @@ function resize() {
 }
 window.addEventListener('resize', resize); resize();
 
-// 资源加载
 const img = {};
 const load = (k, v) => { img[k] = new Image(); img[k].src = v; };
 load('pea', "https://s1.aigei.com/prevfiles/0c48c399aa024288837b5db9214a7251.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:0MCPPPifyEncWX2yXeHcMKqtVa0=");
@@ -93,33 +92,33 @@ load('sun', "https://s1.chu0.com/prevfiles/c5df756ba71b4cc192efa14b8320f64b.gif?
 load('zombie', "https://s1.chu0.com/prevfiles/96eaef96cd134f3c9c9c9e6c20185022.gif");
 load('boss', "https://s1.chu0.com/prevfiles/26a3b77e34f748f09b80a348f5116a26.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:guWfQkrkVo8reVTrDgT-Xb7GyNs=");
 load('fire_bullet', "https://s1.chu0.com/prevfiles/53666e346fc2405e8379faf2dd9aa31f.gif");
+// 割草机贴图
+load('mower', "https://s1.aigei.com/prevfiles/5f6396e953184a44b934789f257d0792.png?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:ZfWlX3M6u7-XW97v60G5K3y0L4A=");
 
 let sun = 150, mode = 'normal', activeP = 'pea', activeC = 100, isShovel = false;
-let plants = [], zombies = [], bullets = [], suns = [], effects = [], running = false, frame = 0;
+let plants = [], zombies = [], bullets = [], suns = [], effects = [], mowers = [], running = false, frame = 0;
 const cooldowns = { pea:0, repeater:0, sunflower:0, cherry:0, squash:0, snowpea:0, torchwood:0, wallnut:0 };
 const CD_MAX = { pea:90, repeater:180, sunflower:90, cherry:800, squash:400, snowpea:180, torchwood:180, wallnut:400 };
 
-// 草地网格定义
+// 网格参数
 const grid = { x: 140, y: 100, w: 85, h: 100, rows: 5, cols: 9 }; 
 
+function initMowers() {
+    mowers = [];
+    for(let r=0; r<grid.rows; r++) {
+        mowers.push({x: 60, y: grid.y + r*grid.h + 10, row: r, active: false, used: false});
+    }
+}
+
 function drawBackground() {
-    // 绘制大底色
     ctx.fillStyle = "#4caf50";
     ctx.fillRect(0, 0, 1000, 640);
-    
-    // 绘制左侧深色区域（出兵区预留）
     ctx.fillStyle = "#388e3c";
     ctx.fillRect(0, 0, 140, 640);
-
-    // 绘制草地格子
     for(let r=0; r<grid.rows; r++) {
         for(let c=0; c<grid.cols; c++) {
             ctx.fillStyle = (r + c) % 2 === 0 ? "#45a049" : "#4caf50";
             ctx.fillRect(grid.x + c*grid.w, grid.y + r*grid.h, grid.w, grid.h);
-            
-            // 绘制很淡的边框线
-            ctx.strokeStyle = "rgba(0,0,0,0.05)";
-            ctx.strokeRect(grid.x + c*grid.w, grid.y + r*grid.h, grid.w, grid.h);
         }
     }
 }
@@ -128,6 +127,7 @@ function start(m) {
     mode = m; sun = (m === 'mod') ? 999999 : 150;
     document.getElementById('sun-val').innerText = (m==='mod'?'∞':sun);
     document.getElementById('menu').style.display = 'none';
+    initMowers();
     running = true; loop();
 }
 
@@ -142,35 +142,39 @@ function sel(t, c, el) {
 function useShovel() {
     isShovel = !isShovel;
     document.getElementById('shovel').classList.toggle('active', isShovel);
-    if(isShovel) {
-        activeP = null;
-        document.querySelectorAll('.card').forEach(i => i.classList.remove('active'));
-    }
+    if(isShovel) { activeP = null; document.querySelectorAll('.card').forEach(i => i.classList.remove('active')); }
 }
 
 function loop() {
     if(!running) return;
-    
-    // 1. 先画背景
     drawBackground();
 
-    // 2. 逻辑处理与绘制
     for(let k in cooldowns) if(cooldowns[k]>0) {
         cooldowns[k]--;
         document.getElementById('card-'+k).style.setProperty('--cd', (cooldowns[k]/CD_MAX[k]*100)+'%');
     }
 
+    // 绘制与处理割草机
+    mowers.forEach((m, mi) => {
+        if(!m.used) {
+            if(img.mower.complete) ctx.drawImage(img.mower, m.x, m.y, 70, 60);
+            if(m.active) {
+                m.x += 15;
+                zombies.forEach(z => {
+                    if(z.row === m.row && z.x < m.x + 50) z.hp -= 5000;
+                });
+                if(m.x > 1000) m.used = true;
+            }
+        }
+    });
+
     plants.forEach((p, pi) => {
         if(img[p.t].complete) ctx.drawImage(img[p.t], p.x+5, p.y+10, 75, 85);
         p.timer++;
-        if(p.t === 'sunflower' && p.timer % 400 === 0) {
-            suns.push({x: p.x+10, y: p.y, vy: -3, targetY: p.y+40, life: 500});
-        }
+        if(p.t === 'sunflower' && p.timer % 400 === 0) suns.push({x: p.x+10, y: p.y, vy: -3, targetY: p.y+40, life: 500});
         if(p.t === 'cherry' && p.timer > 60) {
             effects.push({x: p.x-80, y: p.y-80, t: 'boom', w: 240, h: 240, life: 40});
-            zombies.forEach(z => {
-                if(Math.abs(z.x - p.x) < 150 && z.row >= p.row-1 && z.row <= p.row+1) z.hp -= 2000;
-            });
+            zombies.forEach(z => { if(Math.abs(z.x - p.x) < 150 && Math.abs(z.row - p.row) <= 1) z.hp -= 2000; });
             plants.splice(pi, 1);
         }
         if(p.timer % 95 === 0 && ['pea','repeater','snowpea'].includes(p.t)) {
@@ -185,8 +189,7 @@ function loop() {
         b.x += 8;
         plants.forEach(p => {
             if(p.t === 'torchwood' && p.row === b.row && b.x > p.x + 10 && b.x < p.x + 50) {
-                if(b.t === 'ice') b.t = 'bone';
-                else if(b.t === 'bone') b.t = 'fire';
+                if(b.t === 'ice') b.t = 'bone'; else if(b.t === 'bone') b.t = 'fire';
             }
         });
         if(b.t === 'fire') ctx.drawImage(img.fire_bullet, b.x, b.y-15, 50, 40);
@@ -194,9 +197,7 @@ function loop() {
         else { ctx.fillStyle="#fff"; ctx.beginPath(); ctx.roundRect(b.x, b.y+5, 20, 10, 5); ctx.fill(); }
         zombies.forEach(z => {
             if(b.x > z.x && b.x < z.x+60 && b.row === z.row) {
-                z.hp -= (b.t==='fire'?50:20);
-                if(b.t==='ice') z.slow = 120;
-                bullets.splice(bi, 1);
+                z.hp -= (b.t==='fire'?50:20); if(b.t==='ice') z.slow = 120; bullets.splice(bi, 1);
             }
         });
         if(b.x > 1000) bullets.splice(bi, 1);
@@ -205,10 +206,7 @@ function loop() {
     if(frame % 300 === 0) suns.push({x: Math.random()*500+300, y: -50, vy: 1.5, targetY: 480, life: 600});
     suns.forEach((s, si) => {
         if(img.sun.complete) ctx.drawImage(img.sun, s.x, s.y, 65, 65);
-        if(s.y < s.targetY) {
-            s.y += s.vy;
-            if(s.vy < 0 || s.y < s.targetY - 20) s.vy += 0.1;
-        }
+        if(s.y < s.targetY) { s.y += s.vy; if(s.vy < 0 || s.y < s.targetY - 20) s.vy += 0.1; }
         s.life--; if(s.life <= 0) suns.splice(si, 1);
     });
 
@@ -216,11 +214,19 @@ function loop() {
         let isBoss = (frame > 0 && frame % 1200 === 0);
         zombies.push({x: 1000, row: Math.floor(Math.random()*5), hp: isBoss?3500:150, t: isBoss?'boss':'zombie', slow: 0});
     }
+
     zombies.forEach((z, zi) => {
         if(z.slow > 0) z.slow--;
         let speed = (z.slow > 0) ? 0.35 : 0.75;
         let size = (z.t==='boss'?150:90), yOff = (z.t==='boss'?-40:0);
         if(img[z.t].complete) ctx.drawImage(img[z.t], z.x, grid.y + z.row*grid.h + yOff, size, size);
+        
+        // 割草机碰撞检测
+        let myMower = mowers.find(m => m.row === z.row && !m.used);
+        if(myMower && z.x < myMower.x + 40) {
+            myMower.active = true;
+        }
+
         let eating = false;
         plants.forEach((p, pi) => {
             if(z.x < p.x+35 && z.x > p.x-20 && z.row === p.row) {
@@ -231,7 +237,7 @@ function loop() {
         });
         if(!eating) z.x -= speed;
         if(z.hp <= 0) zombies.splice(zi, 1);
-        if(z.x < 100) { running = false; alert('僵尸入侵！'); location.reload(); }
+        if(z.x < 10) { running = false; alert('游戏结束：僵尸突破了防线！'); location.reload(); }
     });
 
     effects.forEach((ef, efi) => {
@@ -259,18 +265,11 @@ function handleInput(clientX, clientY) {
     if(c >= 0 && c < grid.cols && r >= 0 && r < grid.rows) {
         const gx = grid.x + c*grid.w, gy = grid.y + r*grid.h;
         const targetIdx = plants.findIndex(p => p.x === gx && p.y === gy);
-        
         if(isShovel) { if(targetIdx !== -1) plants.splice(targetIdx, 1); return; }
-        
         if(targetIdx === -1 && activeP) {
             if((sun >= activeC && cooldowns[activeP] <= 0) || mode === 'mod') {
-                let php = activeP==='wallnut'?2000:150;
-                plants.push({x: gx, y: gy, row: r, t: activeP, hp: php, timer: 0, pending: 0});
-                if(mode !== 'mod') { 
-                    sun -= activeC; 
-                    cooldowns[activeP] = CD_MAX[activeP]; 
-                    document.getElementById('sun-val').innerText = sun; 
-                }
+                plants.push({x: gx, y: gy, row: r, t: activeP, hp: activeP==='wallnut'?2000:150, timer: 0, pending: 0});
+                if(mode !== 'mod') { sun -= activeC; cooldowns[activeP] = CD_MAX[activeP]; document.getElementById('sun-val').innerText = sun; }
             }
         }
     }
