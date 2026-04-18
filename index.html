@@ -4,24 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="referrer" content="no-referrer">
-    <title>PVZ 实景完整版</title>
+    <title>PVZ 纯代码草地版</title>
     <style>
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #222; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }
         #game-container { 
             position: relative; 
             width: 1000px; 
             height: 640px; 
-            background: url('https://s1.aigei.com/prevfiles/8ff0199d755f40eea94249be88d261d3.jpg?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:QHTc5h7L4pTrThQHsFrz4vj5F6w=') no-referrer center;
-            background-size: cover;
-            border: 4px solid #3e2723; 
+            background: #45a049; /* 备选底色 */
+            border: 6px solid #3e2723; 
             box-sizing: border-box; 
             transform-origin: center; 
             overflow: hidden; 
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
         }
         #menu { position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .btn { padding: 12px 40px; margin: 10px; font-size: 20px; cursor: pointer; background: #4e342e; color: #fff; border: 2px solid #ff0; border-radius: 12px; }
         
-        #toolbar { position: absolute; top: 5px; left: 5px; display: flex; gap: 5px; background: rgba(0,0,0,0.6); padding: 5px; border-radius: 5px; z-index: 10; border: 1px solid #444; align-items: center; }
+        #toolbar { position: absolute; top: 5px; left: 5px; display: flex; gap: 5px; background: rgba(0,0,0,0.7); padding: 5px; border-radius: 5px; z-index: 10; border: 1px solid #444; align-items: center; }
         .card { width: 62px; height: 85px; background: #555; border: 2px solid #333; cursor: pointer; text-align: center; position: relative; overflow: hidden; }
         .card.active { border-color: #0f0; background: #666; }
         .card.cooldown::after { content: ""; position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.6); height: var(--cd, 0%); }
@@ -33,7 +33,7 @@
         #shovel img { width: 50px; height: 50px; }
         #shovel.active { border-color: #f00; background: #722; transform: scale(1.1); }
 
-        #sun-box { position: absolute; top: 10px; right: 20px; font-size: 24px; color: #ff0; font-weight: bold; z-index: 10; background: rgba(0,0,0,0.4); padding: 5px 12px; border-radius: 15px; }
+        #sun-box { position: absolute; top: 10px; right: 20px; font-size: 24px; color: #ff0; font-weight: bold; z-index: 10; background: rgba(0,0,0,0.5); padding: 5px 12px; border-radius: 15px; }
         canvas { display: block; touch-action: none; position: absolute; top:0; left:0; }
     </style>
 </head>
@@ -41,7 +41,7 @@
 
 <div id="game-container">
     <div id="menu">
-        <h2 style="color:#ff0">植物大战僵尸 · 最终合集</h2>
+        <h2 style="color:#ff0">PVZ · 纯代码草地版</h2>
         <div class="btn" onclick="start('normal')">正常模式</div>
         <div class="btn" onclick="start('mod')" style="color:#ff4444;">无限阳光</div>
     </div>
@@ -57,7 +57,7 @@
         <div class="card" id="card-squash" onclick="sel('squash', 50, this)"><img src="https://s1.chu0.com/prevfiles/e322eb1cbd3c4629887638b3cde1435d.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:JRDVjB_ANh2k6wa6tC_ZBPBCq7U="><div class="cost">50</div><div class="name">倭瓜</div></div>
         
         <div id="shovel" onclick="useShovel()">
-            <img src="https://simg.doyo.cn/imgfile/bgame/202502/14173649szcp.png" alt="铲子贴图">
+            <img src="https://simg.doyo.cn/imgfile/bgame/202502/14173649szcp.png" alt="铲子">
         </div>
     </div>
 
@@ -77,6 +77,7 @@ function resize() {
 }
 window.addEventListener('resize', resize); resize();
 
+// 资源加载
 const img = {};
 const load = (k, v) => { img[k] = new Image(); img[k].src = v; };
 load('pea', "https://s1.aigei.com/prevfiles/0c48c399aa024288837b5db9214a7251.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:0MCPPPifyEncWX2yXeHcMKqtVa0=");
@@ -98,8 +99,30 @@ let plants = [], zombies = [], bullets = [], suns = [], effects = [], running = 
 const cooldowns = { pea:0, repeater:0, sunflower:0, cherry:0, squash:0, snowpea:0, torchwood:0, wallnut:0 };
 const CD_MAX = { pea:90, repeater:180, sunflower:90, cherry:800, squash:400, snowpea:180, torchwood:180, wallnut:400 };
 
-// 基于背景图草坪格子的对齐坐标
-const grid = { x: 250, y: 80, w: 80, h: 100 }; 
+// 草地网格定义
+const grid = { x: 140, y: 100, w: 85, h: 100, rows: 5, cols: 9 }; 
+
+function drawBackground() {
+    // 绘制大底色
+    ctx.fillStyle = "#4caf50";
+    ctx.fillRect(0, 0, 1000, 640);
+    
+    // 绘制左侧深色区域（出兵区预留）
+    ctx.fillStyle = "#388e3c";
+    ctx.fillRect(0, 0, 140, 640);
+
+    // 绘制草地格子
+    for(let r=0; r<grid.rows; r++) {
+        for(let c=0; c<grid.cols; c++) {
+            ctx.fillStyle = (r + c) % 2 === 0 ? "#45a049" : "#4caf50";
+            ctx.fillRect(grid.x + c*grid.w, grid.y + r*grid.h, grid.w, grid.h);
+            
+            // 绘制很淡的边框线
+            ctx.strokeStyle = "rgba(0,0,0,0.05)";
+            ctx.strokeRect(grid.x + c*grid.w, grid.y + r*grid.h, grid.w, grid.h);
+        }
+    }
+}
 
 function start(m) {
     mode = m; sun = (m === 'mod') ? 999999 : 150;
@@ -127,26 +150,26 @@ function useShovel() {
 
 function loop() {
     if(!running) return;
-    ctx.clearRect(0, 0, 1000, 640);
+    
+    // 1. 先画背景
+    drawBackground();
 
+    // 2. 逻辑处理与绘制
     for(let k in cooldowns) if(cooldowns[k]>0) {
         cooldowns[k]--;
         document.getElementById('card-'+k).style.setProperty('--cd', (cooldowns[k]/CD_MAX[k]*100)+'%');
     }
 
     plants.forEach((p, pi) => {
-        if(img[p.t].complete) ctx.drawImage(img[p.t], p.x+5, p.y+10, 70, 80);
+        if(img[p.t].complete) ctx.drawImage(img[p.t], p.x+5, p.y+10, 75, 85);
         p.timer++;
-        // 修正向日葵太阳：划线并停留在草地
         if(p.t === 'sunflower' && p.timer % 400 === 0) {
             suns.push({x: p.x+10, y: p.y, vy: -3, targetY: p.y+40, life: 500});
         }
         if(p.t === 'cherry' && p.timer > 60) {
             effects.push({x: p.x-80, y: p.y-80, t: 'boom', w: 240, h: 240, life: 40});
             zombies.forEach(z => {
-                let zGridX = (z.x - grid.x) / grid.w;
-                let pGridX = (p.x - grid.x) / grid.w;
-                if(Math.abs(zGridX - pGridX) <= 1.5 && Math.abs(z.row - p.row) <= 1) z.hp -= 2000;
+                if(Math.abs(z.x - p.x) < 150 && z.row >= p.row-1 && z.row <= p.row+1) z.hp -= 2000;
             });
             plants.splice(pi, 1);
         }
@@ -166,7 +189,6 @@ function loop() {
                 else if(b.t === 'bone') b.t = 'fire';
             }
         });
-        // 严格使用火焰子弹贴图
         if(b.t === 'fire') ctx.drawImage(img.fire_bullet, b.x, b.y-15, 50, 40);
         else if(b.t === 'ice') { ctx.fillStyle="#00f2ff"; ctx.beginPath(); ctx.arc(b.x+10, b.y+10, 8, 0, 7); ctx.fill(); }
         else { ctx.fillStyle="#fff"; ctx.beginPath(); ctx.roundRect(b.x, b.y+5, 20, 10, 5); ctx.fill(); }
@@ -183,7 +205,10 @@ function loop() {
     if(frame % 300 === 0) suns.push({x: Math.random()*500+300, y: -50, vy: 1.5, targetY: 480, life: 600});
     suns.forEach((s, si) => {
         if(img.sun.complete) ctx.drawImage(img.sun, s.x, s.y, 65, 65);
-        if(s.y < s.targetY) { s.y += s.vy; if(s.vy < 0 || s.y < s.targetY - 20) s.vy += 0.1; }
+        if(s.y < s.targetY) {
+            s.y += s.vy;
+            if(s.vy < 0 || s.y < s.targetY - 20) s.vy += 0.1;
+        }
         s.life--; if(s.life <= 0) suns.splice(si, 1);
     });
 
@@ -206,7 +231,7 @@ function loop() {
         });
         if(!eating) z.x -= speed;
         if(z.hp <= 0) zombies.splice(zi, 1);
-        if(z.x < 180) { running = false; alert('僵尸入侵！'); location.reload(); }
+        if(z.x < 100) { running = false; alert('僵尸入侵！'); location.reload(); }
     });
 
     effects.forEach((ef, efi) => {
@@ -231,7 +256,7 @@ function handleInput(clientX, clientY) {
     }
 
     const c = Math.floor((mx - grid.x) / grid.w), r = Math.floor((my - grid.y) / grid.h);
-    if(c >= 0 && c < 9 && r >= 0 && r < 5) {
+    if(c >= 0 && c < grid.cols && r >= 0 && r < grid.rows) {
         const gx = grid.x + c*grid.w, gy = grid.y + r*grid.h;
         const targetIdx = plants.findIndex(p => p.x === gx && p.y === gy);
         
