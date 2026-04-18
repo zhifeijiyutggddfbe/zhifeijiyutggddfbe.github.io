@@ -1,317 +1,217 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="referrer" content="no-referrer">
-    <title>PVZ 纯代码增强版</title>
-    <style>
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #222; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }
-        #game-container { 
-            position: relative; 
-            width: 1000px; 
-            height: 640px; 
-            background: #45a049;
-            border: 6px solid #3e2723; 
-            box-sizing: border-box; 
-            transform-origin: center; 
-            overflow: hidden; 
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
-        }
-        #menu, #selector-screen, #level-select { position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; }
-        #selector-screen, #level-select { display: none; }
-        
-        .btn { padding: 12px 40px; margin: 10px; font-size: 20px; cursor: pointer; background: #4e342e; color: #fff; border: 2px solid #ff0; border-radius: 12px; }
-        
-        #toolbar { position: absolute; top: 5px; left: 5px; display: flex; gap: 4px; background: rgba(0,0,0,0.7); padding: 5px; border-radius: 5px; z-index: 10; border: 1px solid #444; align-items: center; display: none; }
-        .card { width: 55px; height: 75px; background: #555; border: 2px solid #333; cursor: pointer; text-align: center; position: relative; overflow: hidden; }
-        .card.active { border-color: #0f0; background: #666; }
-        .card.cooldown::after { content: ""; position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.6); height: var(--cd, 0%); }
-        .card img { width: 32px; height: 32px; display: block; margin: 2px auto; pointer-events: none; }
-        .cost { color: #ff0; font-weight: bold; font-size: 10px; }
-        .name { font-size: 8px; color: #fff; }
-
-        #shovel { width: 55px; height: 55px; background: #444; border: 2px solid #888; border-radius: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        #shovel img { width: 40px; height: 40px; }
-        #shovel.active { border-color: #f00; background: #722; }
-
-        #sun-box { position: absolute; top: 10px; right: 20px; font-size: 24px; color: #ff0; font-weight: bold; z-index: 10; background: rgba(0,0,0,0.5); padding: 5px 12px; border-radius: 15px; display: none; }
-        
-        .pick-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; }
-        .pick-card { width: 80px; height: 110px; border: 2px solid #777; cursor: pointer; text-align: center; padding: 5px; background: #333; }
-        .pick-card.selected { border-color: #0f0; opacity: 0.5; }
-
-        canvas { display: block; touch-action: none; position: absolute; top:0; left:0; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PVZ 完整版</title>
+<style>
+html,body{margin:0;background:#222;display:flex;align-items:center;justify-content:center;height:100%}
+#game-container{width:1000px;height:640px;background:#4caf50;position:relative}
+canvas{position:absolute}
+#menu{position:absolute;inset:0;background:#000c;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;z-index:10}
+.btn{padding:12px 30px;margin:10px;background:#4e342e;border:2px solid #ff0;cursor:pointer}
+#toolbar{position:absolute;top:5px;left:5px;display:flex;gap:5px;flex-wrap:wrap;width:500px}
+.card{width:60px;height:80px;background:#555;color:#fff;text-align:center;font-size:10px;cursor:pointer}
+</style>
 </head>
 <body>
 
 <div id="game-container">
-    <div id="menu">
-        <h2 style="color:#ff0">PVZ · 纯代码增强版</h2>
-        <div class="btn" onclick="openMode('normal')">正常模式</div>
-        <div class="btn" onclick="openMode('mod')" style="color:#ff4444;">无限阳光/冷却</div>
-    </div>
+<div id="menu">
+<h2>选择关卡</h2>
+<div class="btn" onclick="chooseLevel('grass')">草地</div>
+<div class="btn" onclick="chooseLevel('pool')">水池</div>
+</div>
 
-    <div id="level-select">
-        <h3>选择场景</h3>
-        <div class="btn" onclick="chooseLevel('grass')">草地 (陆地)</div>
-        <div class="btn" onclick="chooseLevel('pool')" style="color:#00e5ff;">泳池 (水域)</div>
-    </div>
-
-    <div id="selector-screen">
-        <h3>选择你的植物 (点击选择 8 个)</h3>
-        <div class="pick-grid" id="pick-grid"></div>
-        <div class="btn" onclick="confirmSelection()">开始战斗！</div>
-    </div>
-
-    <div id="toolbar">
-        <div id="cards-container" style="display:flex; gap:4px;"></div>
-        <div id="shovel" onclick="useShovel()">
-            <img src="https://simg.doyo.cn/imgfile/bgame/202502/14173649szcp.png">
-        </div>
-    </div>
-
-    <div id="sun-box">☀️ <span id="sun-val">150</span></div>
-    <canvas id="gameCanvas"></canvas>
+<div id="toolbar"></div>
+<canvas id="gameCanvas" width="1000" height="640"></canvas>
 </div>
 
 <script>
-const cvs = document.getElementById('gameCanvas');
-const ctx = cvs.getContext('2d');
-cvs.width = 1000; cvs.height = 640;
+const cvs=document.getElementById('gameCanvas');
+const ctx=cvs.getContext('2d');
+const menu=document.getElementById('menu');
+const toolbar=document.getElementById('toolbar');
 
-// 植物库
-const PLANT_DB = {
-    pea: { name: "豌豆", cost: 100, cd: 90, img: "https://s1.aigei.com/prevfiles/0c48c399aa024288837b5db9214a7251.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:0MCPPPifyEncWX2yXeHcMKqtVa0=" },
-    repeater: { name: "双发", cost: 200, cd: 150, img: "https://s1.chu0.com/src/img/gif/84/841d4abb6ac4416cbadab4ca8f38cd44.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:5zuNEsOdTyxH_6WDOpsD4OgZkEY=" },
-    threepeater: { name: "三发", cost: 325, cd: 180, img: "https://s1.chu0.com/prevfiles/297c79eb6ad8496eae9915741ff893fa.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:Voy_F3P8RV-sBOyIGDCdzzwedAQ=" },
-    snowpea: { name: "寒冰", cost: 175, cd: 150, img: "https://s1.chu0.com/src/img/gif/3b/3bb997567dce4673abc620d6f92b6943.gif" },
-    sunflower: { name: "向日葵", cost: 50, cd: 90, img: "https://s1.aigei.com/prevfiles/1970c9beda3243949100b4eb9f4453f5.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:DSIZp4_WAt59X2K0B8EIQ7W21-o=" },
-    wallnut: { name: "坚果", cost: 50, cd: 400, img: "https://s1.chu0.com/prevfiles/649b5e337e454145809433788a1ee770.gif" },
-    cherry: { name: "樱桃", cost: 150, cd: 800, img: "https://s1.aigei.com/prevfiles/5a4686e74c374bac930c5ebaebda4a12.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:OyySlfi61PYxOknNrdf5CV2FDWQ=" },
-    squash: { name: "倭瓜", cost: 50, cd: 400, img: "https://s1.chu0.com/prevfiles/e322eb1cbd3c4629887638b3cde1435d.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:JRDVjB_ANh2k6wa6tC_ZBPBCq7U=" },
-    lilypad: { name: "荷叶", cost: 25, cd: 80, img: "https://s1.chu0.com/prevfiles/8de79375fe824a228419c38c40351877.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:YaWZC9DFNXKkd3gJqgoN8NxhICY=" },
-    torchwood: { name: "火炬", cost: 175, cd: 150, img: "https://s1.chu0.com/src/img/gif/46/46301be226ca423aafb9e63b99e1872d.gif" }
+// ===== 图片 =====
+const img={};
+const load=(k,v)=>{img[k]=new Image();img[k].src=v};
+
+load('pea',"https://s1.aigei.com/prevfiles/0c48c399aa024288837b5db9214a7251.gif");
+load('repeater',"https://s1.chu0.com/src/img/gif/84/841d4abb6ac4416cbadab4ca8f38cd44.gif");
+load('threepeater',"https://s1.chu0.com/prevfiles/297c79eb6ad8496eae9915741ff893fa.gif");
+load('snowpea',"https://s1.chu0.com/src/img/gif/3b/3bb997567dce4673abc620d6f92b6943.gif");
+load('torchwood',"https://s1.chu0.com/src/img/gif/46/46301be226ca423aafb9e63b99e1872d.gif");
+load('wallnut',"https://s1.chu0.com/prevfiles/649b5e337e454145809433788a1ee770.gif");
+load('wallnut_dmg',"https://s1.chu0.com/prevfiles/c0c1c79695bc4d189deae85b9a545c6c.gif");
+load('sunflower',"https://s1.aigei.com/prevfiles/1970c9beda3243949100b4eb9f4453f5.gif");
+load('cherry',"https://s1.aigei.com/prevfiles/5a4686e74c374bac930c5ebaebda4a12.gif");
+load('squash',"https://s1.chu0.com/prevfiles/e322eb1cbd3c4629887638b3cde1435d.gif");
+load('lilypad',"https://s1.chu0.com/prevfiles/8de79375fe824a228419c38c40351877.gif");
+load('bullet',"https://s1.chu0.com/prevfiles/e527151f9bcb43acb57d8d5b11a25098.gif");
+load('zombie',"https://s1.chu0.com/prevfiles/96eaef96cd134f3c9c9c9e6c20185022.gif");
+
+// ===== 数据 =====
+let plants=[],zombies=[],bullets=[];
+let level='grass',mode='normal';
+let deck=[],selecting=true;
+let allPlants=['pea','repeater','threepeater','snowpea','torchwood','wallnut','sunflower','cherry','squash','lilypad'];
+let page=0,active=null;
+
+const grid={x:140,y:100,w:85,h:100,rows:5,cols:9};
+
+// ===== 关卡 =====
+function chooseLevel(l){
+level=l;
+menu.innerHTML=`
+<h2>选择模式</h2>
+<div class="btn" onclick="start('normal')">正常模式</div>
+<div class="btn" onclick="start('mod')">无限模式</div>`;
+}
+
+// ===== 开始 =====
+function start(m){
+mode=m;
+
+if(mode==='normal'){
+menu.innerHTML='<h2>选8个植物</h2>';
+allPlants.forEach(p=>{
+let b=document.createElement('div');
+b.className='btn';
+b.innerText=p;
+b.onclick=()=>{
+if(deck.length<8){
+deck.push(p);
+b.style.opacity=0.5;
+}
+if(deck.length===8){
+menu.style.display='none';
+renderCards();
+loop();
+}
+};
+menu.appendChild(b);
+});
+}else{
+menu.style.display='none';
+renderCards();
+loop();
+}
+}
+
+// ===== 卡片 =====
+function renderCards(){
+toolbar.innerHTML='';
+let list=(mode==='mod')?allPlants:deck;
+let pageList=list.slice(page*8,(page+1)*8);
+
+pageList.forEach(p=>{
+let d=document.createElement('div');
+d.className='card';
+d.innerText=p;
+d.onclick=()=>active=p;
+toolbar.appendChild(d);
+});
+
+if(mode==='mod'){
+let next=document.createElement('div');
+next.className='card';
+next.innerText='>';
+next.onclick=()=>{page++;renderCards()};
+toolbar.appendChild(next);
+}
+}
+
+// ===== 背景 =====
+function drawBG(){
+ctx.fillStyle="#4caf50";
+ctx.fillRect(0,0,1000,640);
+
+if(level==='pool'){
+ctx.fillStyle="#2bb3ff";
+ctx.fillRect(grid.x,grid.y+2*grid.h,grid.w*9,grid.h*2);
+}
+}
+
+// ===== 主循环 =====
+function loop(){
+drawBG();
+
+// 植物
+plants.forEach(p=>{
+let use=img[p.t];
+
+// 残雪坚果
+if(p.t==='wallnut' && p.hp<800){
+use=img.wallnut_dmg;
+}
+
+ctx.drawImage(use,p.x,p.y,75,85);
+
+// 攻击
+if(['pea','repeater','snowpea','threepeater'].includes(p.t) && Math.random()<0.02){
+if(p.t==='threepeater'){
+[-1,0,1].forEach(o=>{
+let r=p.row+o;
+if(r>=0&&r<5) bullets.push({x:p.x+60,y:p.y+20,row:r,type:p.t});
+});
+}else{
+bullets.push({x:p.x+60,y:p.y+20,row:p.row,type:p.t});
+if(p.t==='repeater') bullets.push({x:p.x+60,y:p.y+20,row:p.row,type:p.t});
+}
+}
+});
+
+// 子弹
+bullets.forEach(b=>{
+b.x+=6;
+ctx.drawImage(img.bullet,b.x,b.y,20,20);
+});
+
+// 僵尸
+if(Math.random()<0.02){
+zombies.push({x:1000,row:Math.floor(Math.random()*5),hp:150});
+}
+
+zombies.forEach(z=>{
+ctx.drawImage(img.zombie,z.x,grid.y+z.row*grid.h,80,90);
+z.x-=0.4;
+
+plants.forEach(p=>{
+if(Math.abs(z.x-p.x)<40 && z.row===p.row){
+p.hp-=1;
+}
+});
+});
+
+// 点击种植
+cvs.onclick=e=>{
+let mx=e.offsetX,my=e.offsetY;
+let c=Math.floor((mx-grid.x)/grid.w);
+let r=Math.floor((my-grid.y)/grid.h);
+
+if(c<0||r<0||c>=9||r>=5) return;
+
+let gx=grid.x+c*grid.w,gy=grid.y+r*grid.h;
+
+// 水池限制
+if(level==='pool' && (r===2||r===3)){
+let hasPad=plants.find(p=>p.x===gx&&p.y===gy&&p.t==='lilypad');
+
+if(active==='lilypad'){
+plants.push({x:gx,y:gy,row:r,t:'lilypad',hp:300});
+return;
+}
+
+if(!hasPad) return;
+}
+
+plants.push({x:gx,y:gy,row:r,t:active,hp:1500});
 };
 
-const imgMap = {};
-Object.entries(PLANT_DB).forEach(([k, v]) => { imgMap[k] = new Image(); imgMap[k].src = v.img; });
-const commonImgs = {
-    sun: "https://s1.chu0.com/prevfiles/c5df756ba71b4cc192efa14b8320f64b.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:qr3Mhje4FeFBSERkl_AU6GNJEuw=",
-    zombie: "https://s1.chu0.com/prevfiles/96eaef96cd134f3c9c9c9e6c20185022.gif",
-    pea_bullet: "https://s1.chu0.com/prevfiles/e527151f9bcb43acb57d8d5b11a25098.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:o_m__m56SDyi9wc8MXP988tzn00=",
-    wallnut_cracked: "https://s1.chu0.com/prevfiles/c0c1c79695bc4d189deae85b9a545c6c.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:n0MPNeSLBJGqYFWb3LtWHKJEqGw=",
-    boom: "https://s1.chu0.com/prevfiles/cf167a87e9f14411ae7734c039d81d9f.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:j0F9e2FSvd2eZnH07fgDJtQVq2w="
-};
-Object.entries(commonImgs).forEach(([k, v]) => { imgMap[k] = new Image(); imgMap[k].src = v; });
-
-let sun = 150, mode = 'normal', level = 'grass', selectedPlants = [], activeP = null, isShovel = false;
-let plants = [], zombies = [], bullets = [], suns = [], effects = [], cooldowns = {}, running = false, frame = 0;
-const grid = { x: 140, y: 100, w: 85, h: 100, rows: 5, cols: 9 };
-
-function openMode(m) {
-    mode = m;
-    document.getElementById('menu').style.display = 'none';
-    document.getElementById('level-select').style.display = 'flex';
+requestAnimationFrame(loop);
 }
-
-function chooseLevel(l) {
-    level = l;
-    document.getElementById('level-select').style.display = 'none';
-    if (mode === 'mod') {
-        selectedPlants = Object.keys(PLANT_DB); // 无限阳光全选
-        confirmSelection();
-    } else {
-        const gridUI = document.getElementById('pick-grid');
-        gridUI.innerHTML = '';
-        Object.entries(PLANT_DB).forEach(([k, v]) => {
-            const d = document.createElement('div');
-            d.className = 'pick-card';
-            d.innerHTML = `<img src="${v.img}" width="40"><br>${v.name}<br>${v.cost}`;
-            d.onclick = () => {
-                if (selectedPlants.includes(k)) {
-                    selectedPlants = selectedPlants.filter(i => i !== k);
-                    d.classList.remove('selected');
-                } else if (selectedPlants.length < 8) {
-                    selectedPlants.push(k);
-                    d.classList.add('selected');
-                }
-            };
-            gridUI.appendChild(d);
-        });
-        document.getElementById('selector-screen').style.display = 'flex';
-    }
-}
-
-function confirmSelection() {
-    document.getElementById('selector-screen').style.display = 'none';
-    document.getElementById('toolbar').style.display = 'flex';
-    document.getElementById('sun-box').style.display = 'block';
-    
-    const bar = document.getElementById('cards-container');
-    bar.innerHTML = '';
-    selectedPlants.forEach(k => {
-        const p = PLANT_DB[k];
-        const d = document.createElement('div');
-        d.className = 'card';
-        d.id = `card-${k}`;
-        d.innerHTML = `<img src="${p.img}"><div class="cost">${p.cost}</div><div class="name">${p.name}</div>`;
-        d.onclick = () => sel(k, p.cost, d);
-        bar.appendChild(d);
-        cooldowns[k] = 0;
-    });
-
-    sun = (mode === 'mod') ? 999999 : 150;
-    document.getElementById('sun-val').innerText = (mode==='mod'?'∞':sun);
-    running = true; loop();
-}
-
-function sel(k, c, el) {
-    isShovel = false; document.getElementById('shovel').classList.remove('active');
-    activeP = k;
-    document.querySelectorAll('.card').forEach(i => i.classList.remove('active'));
-    el.classList.add('active');
-}
-
-function useShovel() {
-    isShovel = !isShovel;
-    document.getElementById('shovel').classList.toggle('active', isShovel);
-    if(isShovel) { activeP = null; document.querySelectorAll('.card').forEach(i => i.classList.remove('active')); }
-}
-
-function loop() {
-    if(!running) return;
-    // 背景
-    ctx.fillStyle = level === 'grass' ? "#4caf50" : "#2196f3";
-    ctx.fillRect(0, 0, 1000, 640);
-    ctx.fillStyle = level === 'grass' ? "#388e3c" : "#0288d1";
-    ctx.fillRect(0, 0, 140, 640);
-
-    for(let r=0; r<grid.rows; r++) {
-        for(let c=0; c<grid.cols; c++) {
-            if(level === 'pool' && (r === 2 || r === 3)) ctx.fillStyle = (r + c) % 2 === 0 ? "#03a9f4" : "#29b6f6";
-            else ctx.fillStyle = (r + c) % 2 === 0 ? "#45a049" : "#4caf50";
-            ctx.fillRect(grid.x + c*grid.w, grid.y + r*grid.h, grid.w, grid.h);
-        }
-    }
-
-    // 冷却
-    if(mode !== 'mod') {
-        for(let k in cooldowns) if(cooldowns[k]>0) {
-            cooldowns[k]--;
-            const el = document.getElementById('card-'+k);
-            if(el) el.style.setProperty('--cd', (cooldowns[k]/PLANT_DB[k].cd * 100)+'%');
-        }
-    }
-
-    // 植物
-    plants.forEach((p, pi) => {
-        let pImg = imgMap[p.t];
-        if(p.t === 'wallnut' && p.hp < 1000) pImg = imgMap['wallnut_cracked'];
-        if(pImg) ctx.drawImage(pImg, p.x+5, p.y + (p.t==='lilypad'?30:10), 75, 85);
-        
-        p.timer++;
-        if(p.t === 'sunflower' && p.timer % 400 === 0) suns.push({x: p.x, y: p.y, vy: -2, targetY: p.y+40, life: 400});
-        
-        // 攻击
-        if(p.timer % 90 === 0 && ['pea','repeater','threepeater','snowpea'].includes(p.t)) {
-            if(zombies.some(z => z.row === p.row && z.x > p.x)) {
-                if(p.t === 'threepeater') {
-                    [-1,0,1].forEach(off => { if(p.row+off >= 0 && p.row+off < 5) bullets.push({x: p.x+60, y: grid.y+(p.row+off)*grid.h+20, row: p.row+off, t: 'normal'}); });
-                } else {
-                    bullets.push({x: p.x+60, y: p.y+20, row: p.row, t: p.t === 'snowpea' ? 'ice' : 'normal'});
-                    if(p.t === 'repeater') p.pending = 1;
-                }
-            }
-        }
-        if(p.pending > 0 && p.timer % 15 === 0) { bullets.push({x: p.x+60, y: p.y+20, row: p.row, t: 'normal'}); p.pending--; }
-    });
-
-    // 子弹
-    bullets.forEach((b, bi) => {
-        b.x += 10;
-        if(b.t === 'ice') { ctx.fillStyle="#00f2ff"; ctx.beginPath(); ctx.arc(b.x+10, b.y+10, 8, 0, 7); ctx.fill(); }
-        else ctx.drawImage(imgMap.pea_bullet, b.x, b.y, 30, 30);
-        
-        zombies.forEach(z => {
-            if(b.x > z.x && b.x < z.x+60 && b.row === z.row) {
-                z.hp -= 20; if(b.t==='ice') z.slow = 150;
-                bullets.splice(bi, 1);
-            }
-        });
-    });
-
-    // 阳光
-    if(frame % 300 === 0) suns.push({x: Math.random()*600+200, y: -50, vy: 1.5, targetY: Math.random()*400+100, life: 500});
-    suns.forEach((s, si) => {
-        ctx.drawImage(imgMap.sun, s.x, s.y, 60, 60);
-        if(s.y < s.targetY) s.y += s.vy;
-        s.life--; if(s.life <= 0) suns.splice(si, 1);
-    });
-
-    // 僵尸
-    if(frame % 240 === 0) zombies.push({x: 1000, row: Math.floor(Math.random()*5), hp: 150, slow: 0});
-    zombies.forEach((z, zi) => {
-        let speed = z.slow > 0 ? 0.3 : 0.7;
-        ctx.drawImage(imgMap.zombie, z.x, grid.y + z.row*grid.h, 90, 90);
-        let eating = false;
-        plants.forEach((p, pi) => {
-            if(z.row === p.row && z.x < p.x+40 && z.x > p.x-20 && p.t !== 'lilypad') {
-                eating = true; p.hp -= 1;
-                if(p.t === 'squash') { z.hp -= 2000; plants.splice(pi, 1); }
-                if(p.hp <= 0) plants.splice(pi, 1);
-            }
-        });
-        if(!eating) z.x -= speed;
-        if(z.hp <= 0) zombies.splice(zi, 1);
-        if(z.x < 80) { running = false; alert("僵尸吃掉了你的脑子！"); location.reload(); }
-    });
-
-    frame++; requestAnimationFrame(loop);
-}
-
-function handleInput(cx, cy) {
-    const rect = cvs.getBoundingClientRect();
-    const mx = (cx - rect.left) / (rect.width/1000), my = (cy - rect.top) / (rect.height/640);
-    
-    // 点阳光
-    for(let i=0; i<suns.length; i++) {
-        if(mx > suns[i].x && mx < suns[i].x+70 && my > suns[i].y && my < suns[i].y+70) {
-            suns.splice(i, 1); sun += (mode==='mod'?0:25);
-            document.getElementById('sun-val').innerText = (mode==='mod'?'∞':sun); return;
-        }
-    }
-
-    const c = Math.floor((mx - grid.x) / grid.w), r = Math.floor((my - grid.y) / grid.h);
-    if(c >= 0 && c < grid.cols && r >= 0 && r < grid.rows) {
-        const gx = grid.x + c*grid.w, gy = grid.y + r*grid.h;
-        const pIdx = plants.findIndex(p => p.x === gx && p.y === gy && p.t !== 'lilypad');
-        const lIdx = plants.findIndex(p => p.x === gx && p.y === gy && p.t === 'lilypad');
-
-        if(isShovel) {
-            if(pIdx !== -1) plants.splice(pIdx, 1);
-            else if(lIdx !== -1) plants.splice(lIdx, 1);
-            return;
-        }
-
-        if(activeP) {
-            const isWater = (level === 'pool' && (r === 2 || r === 3));
-            if(isWater && activeP !== 'lilypad' && lIdx === -1) return; // 没荷叶不能种
-            if(!isWater && activeP === 'lilypad') return; // 陆地不种荷叶
-            
-            if(pIdx === -1 && (activeP !== 'lilypad' || lIdx === -1)) {
-                const cost = PLANT_DB[activeP].cost;
-                if(mode === 'mod' || (sun >= cost && cooldowns[activeP] <= 0)) {
-                    plants.push({x: gx, y: gy, row: r, t: activeP, hp: activeP==='wallnut'?3000:200, timer: 0, pending: 0});
-                    if(mode !== 'mod') { sun -= cost; cooldowns[activeP] = PLANT_DB[activeP].cd; document.getElementById('sun-val').innerText = sun; }
-                }
-            }
-        }
-    }
-}
-
-cvs.addEventListener('mousedown', e => handleInput(e.clientX, e.clientY));
 </script>
+
 </body>
 </html>
