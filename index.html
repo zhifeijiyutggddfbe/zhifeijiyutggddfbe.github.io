@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="referrer" content="no-referrer">
-    <title>PVZ 纯代码草地版 - 音乐集成</title>
+    <title>PVZ 纯代码版 - 新音乐</title>
     <style>
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #222; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }
         #game-container { 
@@ -66,8 +66,10 @@
 </div>
 
 <script>
-// --- 背景音乐对象 ---
-const gameBGM = new Audio("https://drive.google.com/uc?export=download&id=1Em9GWo-BO3OdXcP6trx-98c4NwlBbGh2");
+// --- 音乐配置 ---
+// 注意：由于 Jumpshare 链接不能直接播放，这里使用了转换后的直链逻辑
+const bgmUrl = "https://jumpshare.com/v/ftz3CFFGCY3PPuWWlvhC/download";
+const gameBGM = new Audio(bgmUrl);
 gameBGM.loop = true;
 gameBGM.volume = 0.5;
 
@@ -126,8 +128,8 @@ function start(m) {
     document.getElementById('sun-val').innerText = (m==='mod'?'∞':sun);
     document.getElementById('menu').style.display = 'none';
     
-    // 启动音乐 (应对自动播放政策)
-    gameBGM.play().catch(e => console.log("Music play blocked", e));
+    // 播放音乐
+    gameBGM.play().catch(() => console.log("等待交互后播放音乐"));
     
     running = true; loop();
 }
