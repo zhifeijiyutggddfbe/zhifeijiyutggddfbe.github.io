@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="referrer" content="no-referrer">
-    <title>PVZ 纯代码草地版</title>
+    <title>PVZ 纯代码草地版 - 音乐集成</title>
     <style>
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #222; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }
         #game-container { 
             position: relative; 
             width: 1000px; 
             height: 640px; 
-            background: #45a049; /* 备选底色 */
+            background: #45a049; 
             border: 6px solid #3e2723; 
             box-sizing: border-box; 
             transform-origin: center; 
@@ -66,6 +66,11 @@
 </div>
 
 <script>
+// --- 背景音乐对象 ---
+const gameBGM = new Audio("https://drive.google.com/uc?export=download&id=1Em9GWo-BO3OdXcP6trx-98c4NwlBbGh2");
+gameBGM.loop = true;
+gameBGM.volume = 0.5;
+
 const container = document.getElementById('game-container');
 const cvs = document.getElementById('gameCanvas');
 const ctx = cvs.getContext('2d');
@@ -99,25 +104,17 @@ let plants = [], zombies = [], bullets = [], suns = [], effects = [], running = 
 const cooldowns = { pea:0, repeater:0, sunflower:0, cherry:0, squash:0, snowpea:0, torchwood:0, wallnut:0 };
 const CD_MAX = { pea:90, repeater:180, sunflower:90, cherry:800, squash:400, snowpea:180, torchwood:180, wallnut:400 };
 
-// 草地网格定义
 const grid = { x: 140, y: 100, w: 85, h: 100, rows: 5, cols: 9 }; 
 
 function drawBackground() {
-    // 绘制大底色
     ctx.fillStyle = "#4caf50";
     ctx.fillRect(0, 0, 1000, 640);
-    
-    // 绘制左侧深色区域（出兵区预留）
     ctx.fillStyle = "#388e3c";
     ctx.fillRect(0, 0, 140, 640);
-
-    // 绘制草地格子
     for(let r=0; r<grid.rows; r++) {
         for(let c=0; c<grid.cols; c++) {
             ctx.fillStyle = (r + c) % 2 === 0 ? "#45a049" : "#4caf50";
             ctx.fillRect(grid.x + c*grid.w, grid.y + r*grid.h, grid.w, grid.h);
-            
-            // 绘制很淡的边框线
             ctx.strokeStyle = "rgba(0,0,0,0.05)";
             ctx.strokeRect(grid.x + c*grid.w, grid.y + r*grid.h, grid.w, grid.h);
         }
@@ -128,6 +125,10 @@ function start(m) {
     mode = m; sun = (m === 'mod') ? 999999 : 150;
     document.getElementById('sun-val').innerText = (m==='mod'?'∞':sun);
     document.getElementById('menu').style.display = 'none';
+    
+    // 启动音乐 (应对自动播放政策)
+    gameBGM.play().catch(e => console.log("Music play blocked", e));
+    
     running = true; loop();
 }
 
@@ -150,11 +151,8 @@ function useShovel() {
 
 function loop() {
     if(!running) return;
-    
-    // 1. 先画背景
     drawBackground();
 
-    // 2. 逻辑处理与绘制
     for(let k in cooldowns) if(cooldowns[k]>0) {
         cooldowns[k]--;
         document.getElementById('card-'+k).style.setProperty('--cd', (cooldowns[k]/CD_MAX[k]*100)+'%');
@@ -205,10 +203,7 @@ function loop() {
     if(frame % 300 === 0) suns.push({x: Math.random()*500+300, y: -50, vy: 1.5, targetY: 480, life: 600});
     suns.forEach((s, si) => {
         if(img.sun.complete) ctx.drawImage(img.sun, s.x, s.y, 65, 65);
-        if(s.y < s.targetY) {
-            s.y += s.vy;
-            if(s.vy < 0 || s.y < s.targetY - 20) s.vy += 0.1;
-        }
+        if(s.y < s.targetY) { s.y += s.vy; if(s.vy < 0 || s.y < s.targetY - 20) s.vy += 0.1; }
         s.life--; if(s.life <= 0) suns.splice(si, 1);
     });
 
@@ -231,7 +226,7 @@ function loop() {
         });
         if(!eating) z.x -= speed;
         if(z.hp <= 0) zombies.splice(zi, 1);
-        if(z.x < 100) { running = false; alert('僵尸入侵！'); location.reload(); }
+        if(z.x < 100) { running = false; gameBGM.pause(); alert('僵尸入侵！'); location.reload(); }
     });
 
     effects.forEach((ef, efi) => {
@@ -259,18 +254,12 @@ function handleInput(clientX, clientY) {
     if(c >= 0 && c < grid.cols && r >= 0 && r < grid.rows) {
         const gx = grid.x + c*grid.w, gy = grid.y + r*grid.h;
         const targetIdx = plants.findIndex(p => p.x === gx && p.y === gy);
-        
         if(isShovel) { if(targetIdx !== -1) plants.splice(targetIdx, 1); return; }
-        
         if(targetIdx === -1 && activeP) {
             if((sun >= activeC && cooldowns[activeP] <= 0) || mode === 'mod') {
                 let php = activeP==='wallnut'?2000:150;
                 plants.push({x: gx, y: gy, row: r, t: activeP, hp: php, timer: 0, pending: 0});
-                if(mode !== 'mod') { 
-                    sun -= activeC; 
-                    cooldowns[activeP] = CD_MAX[activeP]; 
-                    document.getElementById('sun-val').innerText = sun; 
-                }
+                if(mode !== 'mod') { sun -= activeC; cooldowns[activeP] = CD_MAX[activeP]; document.getElementById('sun-val').innerText = sun; }
             }
         }
     }
