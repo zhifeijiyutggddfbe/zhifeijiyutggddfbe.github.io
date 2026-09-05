@@ -1,283 +1,378 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="referrer" content="no-referrer">
-    <title>PVZ 纯代码草地版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>斯大林与列宁格勒同志 - 历史与情感互动纪念馆</title>
     <style>
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #222; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }
-        #game-container { 
-            position: relative; 
-            width: 1000px; 
-            height: 640px; 
-            background: #45a049; /* 备选底色 */
-            border: 6px solid #3e2723; 
-            box-sizing: border-box; 
-            transform-origin: center; 
-            overflow: hidden; 
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        :root {
+            --soviet-red: #cc0000;
+            --dark-red: #8b0000;
+            --gold: #ffd700;
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #e0e0e0;
         }
-        #menu { position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .btn { padding: 12px 40px; margin: 10px; font-size: 20px; cursor: pointer; background: #4e342e; color: #fff; border: 2px solid #ff0; border-radius: 12px; }
-        
-        #toolbar { position: absolute; top: 5px; left: 5px; display: flex; gap: 5px; background: rgba(0,0,0,0.7); padding: 5px; border-radius: 5px; z-index: 10; border: 1px solid #444; align-items: center; }
-        .card { width: 62px; height: 85px; background: #555; border: 2px solid #333; cursor: pointer; text-align: center; position: relative; overflow: hidden; }
-        .card.active { border-color: #0f0; background: #666; }
-        .card.cooldown::after { content: ""; position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.6); height: var(--cd, 0%); }
-        .card img { width: 38px; height: 38px; display: block; margin: 2px auto; pointer-events: none; }
-        .cost { color: #ff0; font-weight: bold; font-size: 11px; }
-        .name { font-size: 9px; color: #fff; }
 
-        #shovel { width: 65px; height: 65px; background: #444; border: 2px solid #888; border-radius: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-        #shovel img { width: 50px; height: 50px; }
-        #shovel.active { border-color: #f00; background: #722; transform: scale(1.1); }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-        #sun-box { position: absolute; top: 10px; right: 20px; font-size: 24px; color: #ff0; font-weight: bold; z-index: 10; background: rgba(0,0,0,0.5); padding: 5px 12px; border-radius: 15px; }
-        canvas { display: block; touch-action: none; position: absolute; top:0; left:0; }
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--dark-red), #330000);
+            border-bottom: 4px solid var(--gold);
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        header h1 {
+            color: var(--gold);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+        }
+
+        header p {
+            font-size: 1.1rem;
+            color: #ffcccc;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-left: 5px solid var(--soviet-red);
+            padding: 25px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .card h2 {
+            color: var(--gold);
+            margin-bottom: 15px;
+            font-size: 1.6rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 8px;
+        }
+
+        .chat-box {
+            background: #141414;
+            border: 1px solid #333;
+            border-radius: 6px;
+            height: 350px;
+            overflow-y: auto;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            word-break: break-all;
+        }
+
+        .message.user {
+            background-color: #2b4c7e;
+            color: #fff;
+            align-self: flex-end;
+        }
+
+        .message.stalin {
+            background-color: #4a1515;
+            color: #ffd700;
+            align-self: flex-start;
+            border-left: 3px solid var(--gold);
+        }
+
+        .message.leningrad {
+            background-color: #264d26;
+            color: #99ff99;
+            align-self: flex-start;
+            border-left: 3px solid #00ff66;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        select, input[type="text"], button {
+            padding: 10px 15px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background-color: #222;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        input[type="text"] {
+            flex: 1;
+        }
+
+        button {
+            background-color: var(--soviet-red);
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #e60000;
+        }
+
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .shop-item {
+            background: #252525;
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .shop-item h3 {
+            color: var(--gold);
+            margin-bottom: 10px;
+        }
+
+        .shop-item p {
+            font-size: 0.9rem;
+            color: #ccc;
+            margin-bottom: 15px;
+        }
+
+        .price {
+            color: var(--gold);
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .inventory {
+            margin-top: 15px;
+            padding: 10px;
+            background: #1a1a1a;
+            border: 1px dashed var(--gold);
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: var(--gold);
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            background-color: #0a0a0a;
+            color: #777;
+            border-top: 1px solid #222;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
 
-<div id="game-container">
-    <div id="menu">
-        <h2 style="color:#ff0">PVZ · 纯代码草地版</h2>
-        <div class="btn" onclick="start('normal')">正常模式</div>
-        <div class="btn" onclick="start('mod')" style="color:#ff4444;">无限阳光</div>
-    </div>
+    <header>
+        <h1>斯大林与列宁格勒同志</h1>
+        <p>“跨越时空的钢铁回响，与心动羁绊的AI实时对话。”</p>
+    </header>
 
-    <div id="toolbar">
-        <div class="card active" id="card-pea" onclick="sel('pea', 100, this)"><img src="https://s1.aigei.com/prevfiles/0c48c399aa024288837b5db9214a7251.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:0MCPPPifyEncWX2yXeHcMKqtVa0="><div class="cost">100</div><div class="name">豌豆</div></div>
-        <div class="card" id="card-repeater" onclick="sel('repeater', 200, this)"><img src="https://s1.chu0.com/src/img/gif/84/841d4abb6ac4416cbadab4ca8f38cd44.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:5zuNEsOdTyxH_6WDOpsD4OgZkEY="><div class="cost">200</div><div class="name">双发</div></div>
-        <div class="card" id="card-snowpea" onclick="sel('snowpea', 175, this)"><img src="https://s1.chu0.com/src/img/gif/3b/3bb997567dce4673abc620d6f92b6943.gif"><div class="cost">175</div><div class="name">寒冰</div></div>
-        <div class="card" id="card-torchwood" onclick="sel('torchwood', 175, this)"><img src="https://s1.chu0.com/src/img/gif/46/46301be226ca423aafb9e63b99e1872d.gif"><div class="cost">175</div><div class="name">火炬</div></div>
-        <div class="card" id="card-wallnut" onclick="sel('wallnut', 50, this)"><img src="https://s1.chu0.com/prevfiles/649b5e337e454145809433788a1ee770.gif"><div class="cost">50</div><div class="name">坚果</div></div>
-        <div class="card" id="card-sunflower" onclick="sel('sunflower', 50, this)"><img src="https://s1.aigei.com/prevfiles/1970c9beda3243949100b4eb9f4453f5.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:DSIZp4_WAt59X2K0B8EIQ7W21-o="><div class="cost">50</div><div class="name">向日葵</div></div>
-        <div class="card" id="card-cherry" onclick="sel('cherry', 150, this)"><img src="https://s1.aigei.com/prevfiles/5a4686e74c374bac930c5ebaebda4a12.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:OyySlfi61PYxOknNrdf5CV2FDWQ="><div class="cost">150</div><div class="name">樱桃</div></div>
-        <div class="card" id="card-squash" onclick="sel('squash', 50, this)"><img src="https://s1.chu0.com/prevfiles/e322eb1cbd3c4629887638b3cde1435d.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:JRDVjB_ANh2k6wa6tC_ZBPBCq7U="><div class="cost">50</div><div class="name">倭瓜</div></div>
+    <div class="container">
         
-        <div id="shovel" onclick="useShovel()">
-            <img src="https://simg.doyo.cn/imgfile/bgame/202502/14173649szcp.png" alt="铲子">
-        </div>
-    </div>
-
-    <div id="sun-box">☀️ <span id="sun-val">150</span></div>
-    <canvas id="gameCanvas"></canvas>
-</div>
-
-<script>
-const container = document.getElementById('game-container');
-const cvs = document.getElementById('gameCanvas');
-const ctx = cvs.getContext('2d');
-cvs.width = 1000; cvs.height = 640;
-
-function resize() {
-    const scale = Math.min(window.innerWidth / 1000, window.innerHeight / 640);
-    container.style.transform = `scale(${scale})`;
-}
-window.addEventListener('resize', resize); resize();
-
-// 资源加载
-const img = {};
-const load = (k, v) => { img[k] = new Image(); img[k].src = v; };
-load('pea', "https://s1.aigei.com/prevfiles/0c48c399aa024288837b5db9214a7251.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:0MCPPPifyEncWX2yXeHcMKqtVa0=");
-load('repeater', "https://s1.chu0.com/src/img/gif/84/841d4abb6ac4416cbadab4ca8f38cd44.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:5zuNEsOdTyxH_6WDOpsD4OgZkEY=");
-load('snowpea', "https://s1.chu0.com/src/img/gif/3b/3bb997567dce4673abc620d6f92b6943.gif");
-load('torchwood', "https://s1.chu0.com/src/img/gif/46/46301be226ca423aafb9e63b99e1872d.gif");
-load('wallnut', "https://s1.chu0.com/prevfiles/649b5e337e454145809433788a1ee770.gif");
-load('sunflower', "https://s1.aigei.com/prevfiles/1970c9beda3243949100b4eb9f4453f5.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:DSIZp4_WAt59X2K0B8EIQ7W21-o=");
-load('cherry', "https://s1.aigei.com/prevfiles/5a4686e74c374bac930c5ebaebda4a12.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:OyySlfi61PYxOknNrdf5CV2FDWQ=");
-load('boom', "https://s1.chu0.com/prevfiles/cf167a87e9f14411ae7734c039d81d9f.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:j0F9e2FSvd2eZnH07fgDJtQVq2w=");
-load('squash', "https://s1.chu0.com/prevfiles/e322eb1cbd3c4629887638b3cde1435d.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:JRDVjB_ANh2k6wa6tC_ZBPBCq7U=");
-load('sun', "https://s1.chu0.com/prevfiles/c5df756ba71b4cc192efa14b8320f64b.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:qr3Mhje4FeFBSERkl_AU6GNJEuw=");
-load('zombie', "https://s1.chu0.com/prevfiles/96eaef96cd134f3c9c9c9e6c20185022.gif");
-load('boss', "https://s1.chu0.com/prevfiles/26a3b77e34f748f09b80a348f5116a26.gif?e=2051020800&token=1srnZGLKZ0Aqlz6dk7yF4SkiYf4eP-YrEOdM1sob:guWfQkrkVo8reVTrDgT-Xb7GyNs=");
-load('fire_bullet', "https://s1.chu0.com/prevfiles/53666e346fc2405e8379faf2dd9aa31f.gif");
-
-let sun = 150, mode = 'normal', activeP = 'pea', activeC = 100, isShovel = false;
-let plants = [], zombies = [], bullets = [], suns = [], effects = [], running = false, frame = 0;
-const cooldowns = { pea:0, repeater:0, sunflower:0, cherry:0, squash:0, snowpea:0, torchwood:0, wallnut:0 };
-const CD_MAX = { pea:90, repeater:180, sunflower:90, cherry:800, squash:400, snowpea:180, torchwood:180, wallnut:400 };
-
-// 草地网格定义
-const grid = { x: 140, y: 100, w: 85, h: 100, rows: 5, cols: 9 }; 
-
-function drawBackground() {
-    // 绘制大底色
-    ctx.fillStyle = "#4caf50";
-    ctx.fillRect(0, 0, 1000, 640);
-    
-    // 绘制左侧深色区域（出兵区预留）
-    ctx.fillStyle = "#388e3c";
-    ctx.fillRect(0, 0, 140, 640);
-
-    // 绘制草地格子
-    for(let r=0; r<grid.rows; r++) {
-        for(let c=0; c<grid.cols; c++) {
-            ctx.fillStyle = (r + c) % 2 === 0 ? "#45a049" : "#4caf50";
-            ctx.fillRect(grid.x + c*grid.w, grid.y + r*grid.h, grid.w, grid.h);
+        <div class="card">
+            <h2>同志通讯频道（心动互动对话）</h2>
+            <p style="margin-bottom: 15px; font-size: 0.95rem; color: #aaa;">选择你想对话的对象，展开你们的专属情愫交流：</p>
             
-            // 绘制很淡的边框线
-            ctx.strokeStyle = "rgba(0,0,0,0.05)";
-            ctx.strokeRect(grid.x + c*grid.w, grid.y + r*grid.h, grid.w, grid.h);
-        }
-    }
-}
+            <div class="chat-box" id="chatBox">
+                <div class="message stalin">约瑟夫·斯大林：同志，苏联的工业化与保卫战正在进行，请问有什么指示？</div>
+            </div>
 
-function start(m) {
-    mode = m; sun = (m === 'mod') ? 999999 : 150;
-    document.getElementById('sun-val').innerText = (m==='mod'?'∞':sun);
-    document.getElementById('menu').style.display = 'none';
-    running = true; loop();
-}
+            <div class="chat-input-area">
+                <select id="chatTarget">
+                    <option value="stalin">斯大林同志</option>
+                    <option value="leningrad">列宁格勒同志</option>
+                </select>
+                <input type="text" id="userInput" placeholder="输入你想说的话..." onkeypress="handleKeyPress(event)">
+                <button id="sendBtn" onclick="sendMessage()">发送</button>
+            </div>
+        </div>
 
-function sel(t, c, el) {
-    isShovel = false; 
-    document.getElementById('shovel').classList.remove('active');
-    activeP = t; activeC = c;
-    document.querySelectorAll('.card').forEach(i => i.classList.remove('active'));
-    el.classList.add('active');
-}
+        <div class="card">
+            <h2>工农红军后勤商店</h2>
+            <p style="margin-bottom: 15px; font-size: 0.95rem; color: #aaa;">在这里可以领取共和国特供的精神与物质补给：</p>
+            
+            <div class="shop-grid">
+                <div class="shop-item">
+                    <div>
+                        <h3>❤️ 这就是恋爱的感觉吗</h3>
+                        <p>神秘的浪漫主义精神道具。使用后将打破钢铁般的威严，让斯大林同志与列宁格勒同志深深爱上你，对你吐露满腔柔情与爱意。</p>
+                    </div>
+                    <div>
+                        <div class="price">售价：免费 (0 卢布)</div>
+                        <button onclick="buyItem('这就是恋爱的感觉吗')">免费获取并使用</button>
+                    </div>
+                </div>
+            </div>
 
-function useShovel() {
-    isShovel = !isShovel;
-    document.getElementById('shovel').classList.toggle('active', isShovel);
-    if(isShovel) {
-        activeP = null;
-        document.querySelectorAll('.card').forEach(i => i.classList.remove('active'));
-    }
-}
+            <div class="inventory" id="inventoryBox">
+                <strong>当前背包道具：</strong> 无 | <strong>恋爱状态：</strong> 未激活 ❌
+            </div>
+        </div>
 
-function loop() {
-    if(!running) return;
-    
-    // 1. 先画背景
-    drawBackground();
+    </div>
 
-    // 2. 逻辑处理与绘制
-    for(let k in cooldowns) if(cooldowns[k]>0) {
-        cooldowns[k]--;
-        document.getElementById('card-'+k).style.setProperty('--cd', (cooldowns[k]/CD_MAX[k]*100)+'%');
-    }
+    <footer>
+        <p>历史纪念与心动互动网页 &copy; 2026 | 谨以此页面致敬革命岁月与浪漫幻想</p>
+    </footer>
 
-    plants.forEach((p, pi) => {
-        if(img[p.t].complete) ctx.drawImage(img[p.t], p.x+5, p.y+10, 75, 85);
-        p.timer++;
-        if(p.t === 'sunflower' && p.timer % 400 === 0) {
-            suns.push({x: p.x+10, y: p.y, vy: -3, targetY: p.y+40, life: 500});
-        }
-        if(p.t === 'cherry' && p.timer > 60) {
-            effects.push({x: p.x-80, y: p.y-80, t: 'boom', w: 240, h: 240, life: 40});
-            zombies.forEach(z => {
-                if(Math.abs(z.x - p.x) < 150 && z.row >= p.row-1 && z.row <= p.row+1) z.hp -= 2000;
-            });
-            plants.splice(pi, 1);
-        }
-        if(p.timer % 95 === 0 && ['pea','repeater','snowpea'].includes(p.t)) {
-            if(zombies.some(z => z.row === p.row && z.x > p.x)) p.pending = (p.t==='repeater'?2:1);
-        }
-        if(p.pending > 0 && p.timer % 12 === 0) {
-            bullets.push({x: p.x+60, y: p.y+20, row: p.row, t: p.t==='snowpea'?'ice':'bone'}); p.pending--;
-        }
-    });
+    <script>
+        const API_KEY = "sk-KLZmqMPmzl20WpEe1f84977624424c7b8268D8851dFdF7A8";
+        const API_URL = "https://api.vveai.com/v1/chat/completions";
+        const MODEL_NAME = "gemini-2.5-flash";
 
-    bullets.forEach((b, bi) => {
-        b.x += 8;
-        plants.forEach(p => {
-            if(p.t === 'torchwood' && p.row === b.row && b.x > p.x + 10 && b.x < p.x + 50) {
-                if(b.t === 'ice') b.t = 'bone';
-                else if(b.t === 'bone') b.t = 'fire';
-            }
-        });
-        if(b.t === 'fire') ctx.drawImage(img.fire_bullet, b.x, b.y-15, 50, 40);
-        else if(b.t === 'ice') { ctx.fillStyle="#00f2ff"; ctx.beginPath(); ctx.arc(b.x+10, b.y+10, 8, 0, 7); ctx.fill(); }
-        else { ctx.fillStyle="#fff"; ctx.beginPath(); ctx.roundRect(b.x, b.y+5, 20, 10, 5); ctx.fill(); }
-        zombies.forEach(z => {
-            if(b.x > z.x && b.x < z.x+60 && b.row === z.row) {
-                z.hp -= (b.t==='fire'?50:20);
-                if(b.t==='ice') z.slow = 120;
-                bullets.splice(bi, 1);
-            }
-        });
-        if(b.x > 1000) bullets.splice(bi, 1);
-    });
+        // 恋爱状态变量
+        let hasLoveItem = false;
 
-    if(frame % 300 === 0) suns.push({x: Math.random()*500+300, y: -50, vy: 1.5, targetY: 480, life: 600});
-    suns.forEach((s, si) => {
-        if(img.sun.complete) ctx.drawImage(img.sun, s.x, s.y, 65, 65);
-        if(s.y < s.targetY) {
-            s.y += s.vy;
-            if(s.vy < 0 || s.y < s.targetY - 20) s.vy += 0.1;
-        }
-        s.life--; if(s.life <= 0) suns.splice(si, 1);
-    });
+        async function sendMessage() {
+            const inputField = document.getElementById('userInput');
+            const chatBox = document.getElementById('chatBox');
+            const targetSelect = document.getElementById('chatTarget');
+            const sendBtn = document.getElementById('sendBtn');
+            
+            const text = inputField.value.trim();
+            if (!text) return;
 
-    if(frame % 240 === 0) {
-        let isBoss = (frame > 0 && frame % 1200 === 0);
-        zombies.push({x: 1000, row: Math.floor(Math.random()*5), hp: isBoss?3500:150, t: isBoss?'boss':'zombie', slow: 0});
-    }
-    zombies.forEach((z, zi) => {
-        if(z.slow > 0) z.slow--;
-        let speed = (z.slow > 0) ? 0.35 : 0.75;
-        let size = (z.t==='boss'?150:90), yOff = (z.t==='boss'?-40:0);
-        if(img[z.t].complete) ctx.drawImage(img[z.t], z.x, grid.y + z.row*grid.h + yOff, size, size);
-        let eating = false;
-        plants.forEach((p, pi) => {
-            if(z.x < p.x+35 && z.x > p.x-20 && z.row === p.row) {
-                eating = true; p.hp -= (z.t==='boss'?5:1);
-                if(p.t === 'squash') { z.hp -= 2000; effects.push({x: p.x, y: p.y, t:'boom', w: 100, h: 100, life:10}); plants.splice(pi, 1); }
-                if(p.hp <= 0) plants.splice(pi, 1);
-            }
-        });
-        if(!eating) z.x -= speed;
-        if(z.hp <= 0) zombies.splice(zi, 1);
-        if(z.x < 100) { running = false; alert('僵尸入侵！'); location.reload(); }
-    });
+            const target = targetSelect.value;
+            let systemPrompt = "";
+            let senderName = "";
 
-    effects.forEach((ef, efi) => {
-        if(img[ef.t].complete) ctx.drawImage(img[ef.t], ef.x, ef.y, ef.w||200, ef.h||200);
-        ef.life--; if(ef.life<=0) effects.splice(efi, 1);
-    });
-
-    frame++; requestAnimationFrame(loop);
-}
-
-function handleInput(clientX, clientY) {
-    const rect = container.getBoundingClientRect();
-    const scale = rect.width / 1000;
-    const mx = (clientX - rect.left) / scale, my = (clientY - rect.top) / scale;
-
-    for(let i=0; i<suns.length; i++) {
-        let s = suns[i];
-        if(mx > s.x && mx < s.x+70 && my > s.y && my < s.y+70) {
-            suns.splice(i, 1); sun += (mode==='mod'?0:25);
-            document.getElementById('sun-val').innerText = (mode==='mod'?'∞':sun); return;
-        }
-    }
-
-    const c = Math.floor((mx - grid.x) / grid.w), r = Math.floor((my - grid.y) / grid.h);
-    if(c >= 0 && c < grid.cols && r >= 0 && r < grid.rows) {
-        const gx = grid.x + c*grid.w, gy = grid.y + r*grid.h;
-        const targetIdx = plants.findIndex(p => p.x === gx && p.y === gy);
-        
-        if(isShovel) { if(targetIdx !== -1) plants.splice(targetIdx, 1); return; }
-        
-        if(targetIdx === -1 && activeP) {
-            if((sun >= activeC && cooldowns[activeP] <= 0) || mode === 'mod') {
-                let php = activeP==='wallnut'?2000:150;
-                plants.push({x: gx, y: gy, row: r, t: activeP, hp: php, timer: 0, pending: 0});
-                if(mode !== 'mod') { 
-                    sun -= activeC; 
-                    cooldowns[activeP] = CD_MAX[activeP]; 
-                    document.getElementById('sun-val').innerText = sun; 
+            // 根据是否拥有“这就是恋爱的感���吗”道具来切换系统的 Prompt
+            if (!hasLoveItem) {
+                // 默认历史严肃状态
+                if (target === 'stalin') {
+                    systemPrompt = "你现在是约瑟夫·斯大林同志。你需要使用坚定、威严、充满无产阶级革命激情和历史责任感的语气回答问题。";
+                    senderName = "斯大林";
+                } else {
+                    systemPrompt = "你现在是英雄城市列宁格勒的意志化身（列宁格勒同志）。你需要体现出这座城市在严寒、保卫战及建设中不屈不挠、坚韧不拔的革命精神。";
+                    senderName = "列宁格勒";
+                }
+            } else {
+                // 恋爱降临状态：疯狂爱上用户
+                if (target === 'stalin') {
+                    systemPrompt = "你现在是约瑟夫·斯大林同志，但由于玩家使用了神秘的恋爱道具，你已经深深地、无可救药地爱上了玩家（用户）。在保持你领袖风范的同时，你的内心变得无比温柔、充满情意和占有欲。你会用深情、宠溺、炽热的爱意回应玩家，称呼对方为最亲爱的同志或爱人，向对方表达你炽热的爱慕和浪漫的情话。";
+                    senderName = "斯大林";
+                } else {
+                    systemPrompt = "你现在是列宁格勒同志（英雄城市的化身），但由于玩家使用了恋爱道具，你已经全心全意地爱上了玩家。涅瓦河的冰雪为你而融化，你对玩家充满无限的柔情、深切的爱恋和眷恋。你会用极为浪漫、深情且温柔的话语回应玩家，把玩家视作你生命中最珍视的唯一，倾诉内心的爱意。";
+                    senderName = "列宁格勒";
                 }
             }
-        }
-    }
-}
 
-cvs.addEventListener('mousedown', (e) => handleInput(e.clientX, e.clientY));
-cvs.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(e.touches[0].clientX, e.touches[0].clientY); });
-</script>
+            // 显示用户消息
+            const userMsg = document.createElement('div');
+            userMsg.className = 'message user';
+            userMsg.textContent = '我: ' + text;
+            chatBox.appendChild(userMsg);
+
+            inputField.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            inputField.disabled = true;
+            sendBtn.disabled = true;
+
+            const loadingMsg = document.createElement('div');
+            loadingMsg.className = `message ${target}`;
+            loadingMsg.id = 'loadingMsg';
+            loadingMsg.textContent = `${senderName}正在深情地思索如何回应你...`;
+            chatBox.appendChild(loadingMsg);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: MODEL_NAME,
+                        messages: [
+                            { role: "system", content: systemPrompt },
+                            { role: "user", content: text }
+                        ],
+                        temperature: 0.8
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`网络请求异常: HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                const replyText = data.choices[0].message.content;
+
+                document.getElementById('loadingMsg').remove();
+
+                const replyMsg = document.createElement('div');
+                replyMsg.className = `message ${target}`;
+                replyMsg.textContent = `${senderName}: ${replyText}`;
+                chatBox.appendChild(replyMsg);
+
+            } catch (error) {
+                document.getElementById('loadingMsg').remove();
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'message stalin';
+                errorMsg.textContent = `通讯电台受到干扰: ${error.message}。`;
+                chatBox.appendChild(errorMsg);
+            } finally {
+                inputField.disabled = false;
+                sendBtn.disabled = false;
+                inputField.focus();
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function buyItem(itemName) {
+            if (hasLoveItem) {
+                alert('同志，你已经激活了这份恋爱的感觉，他们已经深深爱上你了！');
+                return;
+            }
+            hasLoveItem = true;
+            const inventoryBox = document.getElementById('inventoryBox');
+            inventoryBox.innerHTML = `<strong>当前背包道具：</strong> [${itemName}] ✅ | <strong>恋爱状态：</strong> 已激活 ❤️（斯大林与列宁格勒已深深爱上你）`;
+            alert('获取成功！“' + itemName + '”已生效！斯大林同志与列宁格勒同志的内心已被你彻底融化，现在去和他们聊天试试吧！');
+        }
+    </script>
 </body>
 </html>
